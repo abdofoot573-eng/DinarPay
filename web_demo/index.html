@@ -79,6 +79,14 @@
     .qr-card-gradient {
       background: linear-gradient(135deg, #0F172A 0%, #0284C7 50%, #10B981 100%);
     }
+
+    @keyframes spinSlow {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+    .animate-spin-slow {
+      animation: spinSlow 2s linear infinite;
+    }
   </style>
 </head>
 <body class="text-dz-navyText min-h-screen flex items-center justify-center p-0 md:py-4 overflow-x-hidden font-cairo" x-data="dinarPayApp()" x-init="initApp()">
@@ -103,7 +111,6 @@
   </template>
 
   <!-- ================= MAIN APPLICATION VIEWPORT ================= -->
-  <!-- Scales edge-to-edge on mobile, and elegant centered smartphone container on desktop -->
   <div class="w-full max-w-[440px] h-[100dvh] md:h-[900px] bg-dz-bgSoft md:rounded-[44px] overflow-hidden flex flex-col relative shadow-2xl md:border-[10px] md:border-slate-800" x-show="!isAppDisabled">
 
     <!-- Android Status Bar -->
@@ -119,8 +126,104 @@
     <!-- Active Screen Content Viewport -->
     <div class="flex-1 overflow-y-auto no-scrollbar relative flex flex-col">
 
+      <!-- ================= SCREEN 0: INITIAL LOGO SPLASH SCREEN ================= -->
+      <div x-show="splashStage === 0" class="fixed inset-0 bg-gradient-to-b from-[#003EA8] via-[#0057D9] to-[#002F87] z-40 flex flex-col items-center justify-center p-6 text-white text-center cursor-pointer" @click="nextSplashStage()" x-transition>
+        <div class="flex flex-col items-center gap-6">
+          <img src="assets/canva_logo_white.png" alt="PayDz Logo" class="w-56 h-auto object-contain drop-shadow-2xl">
+          <div class="flex items-center gap-3 bg-white/10 px-5 py-2.5 rounded-full border border-white/20 shadow-inner mt-4">
+            <img src="assets/canva_splash_spinner.png" alt="Spinner" class="w-6 h-6 object-contain animate-spin-slow">
+            <span class="text-xs font-bold tracking-wide">جاري تحميل خدمات DinarPay...</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ================= SCREEN 1: MAQAM ECHAHID HD SPLASH SCREEN ================= -->
+      <div x-show="splashStage === 1" class="fixed inset-0 z-40 flex flex-col justify-between p-6 text-white text-center bg-cover bg-center relative cursor-pointer" style="background-image: url('assets/canva_splash_bg.png')" @click="splashStage = 2" x-transition>
+        <!-- Top Branding Showcase -->
+        <div class="pt-16 flex flex-col items-center gap-3">
+          <img src="assets/canva_logo_white.png" alt="PayDz Logo" class="w-52 h-auto object-contain">
+          <p class="text-sm font-semibold text-white/90 leading-relaxed font-cairo">
+            كل خدماتك المالية<br>في مكان واحد
+          </p>
+        </div>
+
+        <!-- Single-Line Designer Trust Values Strip -->
+        <div class="pb-10">
+          <div class="bg-white/15 backdrop-blur-md border border-white/25 rounded-full py-2.5 px-4 flex items-center justify-around text-xs font-bold text-white shadow-xl">
+            <span>الموثوقية</span>
+            <span class="text-white/40">•</span>
+            <span>الصدق</span>
+            <span class="text-white/40">•</span>
+            <span>الراحة</span>
+            <span class="text-white/40">•</span>
+            <span>الأمان</span>
+          </div>
+          <span class="text-[11px] text-white/70 block mt-3 font-medium">اضغط في أي مكان للبدء الفوري</span>
+        </div>
+      </div>
+
+      <!-- ================= SCREEN 2: AUTH GATE SCREEN (تسجيل الدخول / إنشاء حساب) ================= -->
+      <div x-show="splashStage === 2 && !isAuthenticated" class="flex-1 p-6 flex flex-col justify-between bg-dz-bgSoft" x-transition>
+        <div class="space-y-6 pt-4 text-center">
+          <img src="assets/canva_logo_blue.png" alt="PayDz Logo" class="w-48 h-auto mx-auto object-contain cursor-pointer" @click="splashStage = 0">
+          
+          <div>
+            <h2 class="text-xl font-black text-dz-navyText" x-text="authMode === 'login' ? 'مرحباً بك في PayDz' : 'إنشاء حساب جديد في PayDz'"></h2>
+            <p class="text-xs text-dz-slateText mt-1" x-text="authMode === 'login' ? 'سجل دخولك السريع والمباشر عبر حساب Google أو البصمة' : 'أنشئ حسابك فوراً وبأمان بلمسة واحدة باستخدام Google'"></p>
+          </div>
+
+          <!-- Mode Switcher Tabs -->
+          <div class="bg-slate-200/70 rounded-full p-1 flex text-xs font-bold text-dz-navyText">
+            <button @click="authMode = 'login'" :class="authMode === 'login' ? 'bg-dz-bluePrimary text-white shadow-md' : 'text-dz-navyText'" class="flex-1 py-2.5 rounded-full transition">
+              تسجيل الدخول
+            </button>
+            <button @click="authMode = 'signup'" :class="authMode === 'signup' ? 'bg-dz-bluePrimary text-white shadow-md' : 'text-dz-navyText'" class="flex-1 py-2.5 rounded-full transition">
+              إنشاء حساب جديد
+            </button>
+          </div>
+
+          <!-- Main Auth Buttons -->
+          <div class="space-y-3 pt-2">
+            <!-- Google Button -->
+            <button @click="loginWithGoogle()" class="w-full py-3.5 bg-dz-bluePrimary hover:bg-dz-blueDark text-white rounded-full font-bold text-sm shadow-lg flex items-center justify-center gap-3 transition">
+              <div class="w-7 h-7 rounded-full bg-white flex items-center justify-center shrink-0">
+                <svg class="w-4 h-4" viewBox="0 0 24 24">
+                  <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                  <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                  <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
+                  <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
+                </svg>
+              </div>
+              <span x-text="authMode === 'login' ? 'تسجيل الدخول باستخدام Google' : 'إنشاء حساب جديد باستخدام Google'"></span>
+            </button>
+
+            <!-- Divider -->
+            <div class="flex items-center gap-3 text-xs text-dz-slateText py-1">
+              <div class="h-px bg-slate-300 flex-1"></div>
+              <span>أو الدخول البيومتري</span>
+              <div class="h-px bg-slate-300 flex-1"></div>
+            </div>
+
+            <!-- Biometric Fingerprint Button -->
+            <button @click="openModal('biometricScanner')" class="w-full py-3.5 bg-white border border-dz-cardBorder text-dz-navyText rounded-full font-bold text-sm shadow-sm flex items-center justify-center gap-2.5 hover:bg-slate-50 transition">
+              <img src="assets/canva_ic_fingerprint.png" alt="Fingerprint" class="w-7 h-7 object-contain">
+              <div class="text-right">
+                <span class="block text-xs font-bold">الدخول ببصمة الهاتف</span>
+                <span class="block text-[10px] text-emerald-600 font-normal">مفعّلة • المس المستشعر للدخول الفوري</span>
+              </div>
+            </button>
+          </div>
+        </div>
+
+        <!-- Footer link -->
+        <div class="text-center py-4">
+          <span class="text-xs text-dz-slateText" x-text="authMode === 'login' ? 'ليس لديك حساب؟ ' : 'لديك حساب بالفعل؟ '"></span>
+          <span class="text-xs font-bold text-dz-bluePrimary cursor-pointer" @click="authMode = authMode === 'login' ? 'signup' : 'login'" x-text="authMode === 'login' ? 'إنشاء حساب جديد' : 'تسجيل الدخول'"></span>
+        </div>
+      </div>
+
       <!-- ================= 1. TAB: HOME (الرئيسية) ================= -->
-      <div x-show="currentTab === 'home'" class="flex-1 pb-20">
+      <div x-show="splashStage === 2 && isAuthenticated && currentTab === 'home'" class="flex-1 pb-20">
 
         <!-- Curved Top Header (Blue Gradient) -->
         <div class="header-curve px-5 pt-3 pb-8 shadow-md relative">
@@ -325,9 +428,9 @@
             </button>
 
             <!-- 8. Analytics -->
-            <button @click="openModal('analytics')" class="bg-white rounded-2xl p-2.5 flex flex-col items-center justify-center shadow-sm hover:shadow-md transition border border-dz-cardBorder">
-              <img src="assets/canva_feat_chart.png" alt="Chart" class="w-9 h-9 object-contain mb-1">
-              <span class="text-[11px] font-bold text-dz-navyText">التحليلات</span>
+            <button @click="openModal('idoom')" class="bg-white rounded-2xl p-2.5 flex flex-col items-center justify-center shadow-sm hover:shadow-md transition border border-dz-cardBorder">
+              <img src="assets/canva_ic_idoom_wifi.png" alt="Idoom" class="w-9 h-9 object-contain mb-1">
+              <span class="text-[11px] font-bold text-dz-navyText">إنترنت Idoom</span>
             </button>
           </div>
         </div>
@@ -386,7 +489,7 @@
       </div>
 
       <!-- ================= 2. TAB: TRANSACTIONS (المعاملات) ================= -->
-      <div x-show="currentTab === 'transactions'" class="flex-1 p-5 pb-20 space-y-4">
+      <div x-show="splashStage === 2 && isAuthenticated && currentTab === 'transactions'" class="flex-1 p-5 pb-20 space-y-4">
         <h2 class="text-lg font-bold text-dz-navyText">سجل المعاملات والتحويلات</h2>
 
         <!-- Filter Tabs -->
@@ -418,7 +521,7 @@
       </div>
 
       <!-- ================= 3. TAB: SERVICES (الخدمات) ================= -->
-      <div x-show="currentTab === 'services'" class="flex-1 p-5 pb-20 space-y-4">
+      <div x-show="splashStage === 2 && isAuthenticated && currentTab === 'services'" class="flex-1 p-5 pb-20 space-y-4">
         <h2 class="text-lg font-bold text-dz-navyText">الخدمات المصرفية الشاملة</h2>
 
         <div class="space-y-3">
@@ -458,7 +561,19 @@
             <i data-lucide="chevron-left" class="w-5 h-5 text-slate-400"></i>
           </div>
 
-          <!-- 4. ATM -->
+          <!-- 4. Idoom Internet -->
+          <div @click="openModal('idoom')" class="bg-white p-4 rounded-3xl border border-dz-cardBorder shadow-sm flex items-center justify-between cursor-pointer hover:border-dz-bluePrimary transition">
+            <div class="flex items-center gap-3.5">
+              <img src="assets/canva_ic_idoom_wifi.png" class="w-10 h-10 object-contain" alt="">
+              <div>
+                <span class="text-xs font-bold block text-dz-navyText">إنترنت منزلي Idoom (ADSL / Fibre)</span>
+                <span class="text-[10px] text-dz-slateText">شحن اشتراكات اتصالات الجزائر فورياً</span>
+              </div>
+            </div>
+            <i data-lucide="chevron-left" class="w-5 h-5 text-slate-400"></i>
+          </div>
+
+          <!-- 5. ATM -->
           <div @click="openModal('atm')" class="bg-white p-4 rounded-3xl border border-dz-cardBorder shadow-sm flex items-center justify-between cursor-pointer hover:border-dz-bluePrimary transition">
             <div class="flex items-center gap-3.5">
               <img src="assets/canva_feat_bolt.png" class="w-10 h-10 object-contain" alt="">
@@ -470,7 +585,7 @@
             <i data-lucide="chevron-left" class="w-5 h-5 text-slate-400"></i>
           </div>
 
-          <!-- 5. Beneficiaries -->
+          <!-- 6. Beneficiaries -->
           <div @click="openModal('beneficiaries')" class="bg-white p-4 rounded-3xl border border-dz-cardBorder shadow-sm flex items-center justify-between cursor-pointer hover:border-dz-bluePrimary transition">
             <div class="flex items-center gap-3.5">
               <img src="assets/canva_ic_beneficiaries.png" class="w-10 h-10 object-contain" alt="">
@@ -485,7 +600,7 @@
       </div>
 
       <!-- ================= 4. TAB: MORE (المزيد / الإعدادات وحماية المطور) ================= -->
-      <div x-show="currentTab === 'more'" class="flex-1 p-5 pb-20 space-y-4">
+      <div x-show="splashStage === 2 && isAuthenticated && currentTab === 'more'" class="flex-1 p-5 pb-20 space-y-4">
         <h2 class="text-lg font-bold text-dz-navyText">الملف الشخصي والإعدادات</h2>
 
         <div class="text-center py-2">
@@ -507,9 +622,13 @@
             <span class="text-dz-slateText">حالة البطاقة الذهبية:</span>
             <span class="font-bold" :class="cardFrozen ? 'text-rose-600' : 'text-emerald-600'" x-text="cardFrozen ? 'مجمدة حالياً' : 'مفعلة ونشطة ✓'"></span>
           </div>
-          <div class="flex justify-between py-2">
+          <div class="flex justify-between py-2 border-b border-slate-100">
             <span class="text-dz-slateText">التوثيق:</span>
             <span class="font-bold text-emerald-600">موثق مع بريد الجزائر ✓</span>
+          </div>
+          <div class="flex justify-between py-2 cursor-pointer text-rose-600 font-bold" @click="logout()">
+            <span>تسجيل الخروج من الحساب</span>
+            <i data-lucide="log-out" class="w-4 h-4"></i>
           </div>
         </div>
 
@@ -530,8 +649,8 @@
 
     </div>
 
-    <!-- ================= FIXED 4-TAB BOTTOM NAVIGATION BAR (Exact DESIGN.md) ================= -->
-    <div class="h-16 bg-white border-t border-dz-cardBorder px-4 flex items-center justify-around shrink-0 z-30">
+    <!-- ================= FIXED 4-TAB BOTTOM NAVIGATION BAR ================= -->
+    <div x-show="splashStage === 2 && isAuthenticated" class="h-16 bg-white border-t border-dz-cardBorder px-4 flex items-center justify-around shrink-0 z-30">
       
       <!-- Tab 1: Home -->
       <button @click="currentTab = 'home'" :class="currentTab === 'home' ? 'text-dz-bluePrimary font-bold' : 'text-dz-slateText font-medium'" class="flex flex-col items-center gap-1 transition">
@@ -610,7 +729,7 @@
       </div>
     </div>
 
-    <!-- Modal 2: Flexy Topup -->
+    <!-- Modal 2: Flexy Topup (with Authentic Operator Brand Badges) -->
     <div x-show="activeModal === 'topup'" class="fixed inset-0 bg-slate-950/60 backdrop-blur-sm z-40 flex items-end sm:items-center justify-center p-0 sm:p-4" x-transition>
       <div class="bg-white w-full max-w-[440px] rounded-t-3xl sm:rounded-3xl p-5 space-y-4 shadow-2xl max-h-[85vh] overflow-y-auto no-scrollbar">
         <div class="flex items-center justify-between pb-2 border-b border-slate-100">
@@ -628,14 +747,23 @@
         </div>
 
         <div class="grid grid-cols-3 gap-2">
-          <button @click="topupForm.operator = 'Mobilis'" :class="topupForm.operator === 'Mobilis' ? 'border-emerald-500 bg-emerald-50 text-emerald-700 font-bold' : 'border-slate-200 bg-slate-50 text-slate-600'" class="py-2.5 rounded-xl border text-center text-xs transition">
-            Mobilis
+          <!-- Mobilis Badge -->
+          <button @click="topupForm.operator = 'Mobilis'" :class="topupForm.operator === 'Mobilis' ? 'border-[#00A859] bg-[#00A859] text-white font-bold shadow-md' : 'border-slate-200 bg-slate-50 text-slate-700'" class="py-3 px-2 rounded-2xl border text-center text-xs transition flex flex-col items-center justify-center gap-1">
+            <div class="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center font-black text-xs">M</div>
+            <span class="font-bold">موبيليس</span>
+            <span class="text-[9px] opacity-80">Mobilis</span>
           </button>
-          <button @click="topupForm.operator = 'Djezzy'" :class="topupForm.operator === 'Djezzy' ? 'border-red-500 bg-red-50 text-red-700 font-bold' : 'border-slate-200 bg-slate-50 text-slate-600'" class="py-2.5 rounded-xl border text-center text-xs transition">
-            Djezzy
+          <!-- Djezzy Badge -->
+          <button @click="topupForm.operator = 'Djezzy'" :class="topupForm.operator === 'Djezzy' ? 'border-[#E30613] bg-[#E30613] text-white font-bold shadow-md' : 'border-slate-200 bg-slate-50 text-slate-700'" class="py-3 px-2 rounded-2xl border text-center text-xs transition flex flex-col items-center justify-center gap-1">
+            <div class="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center font-black text-xs">D</div>
+            <span class="font-bold">جيزي</span>
+            <span class="text-[9px] opacity-80">Djezzy</span>
           </button>
-          <button @click="topupForm.operator = 'Ooredoo'" :class="topupForm.operator === 'Ooredoo' ? 'border-rose-500 bg-rose-50 text-rose-700 font-bold' : 'border-slate-200 bg-slate-50 text-slate-600'" class="py-2.5 rounded-xl border text-center text-xs transition">
-            Ooredoo
+          <!-- Ooredoo Badge -->
+          <button @click="topupForm.operator = 'Ooredoo'" :class="topupForm.operator === 'Ooredoo' ? 'border-[#ED1C24] bg-[#ED1C24] text-white font-bold shadow-md' : 'border-slate-200 bg-slate-50 text-slate-700'" class="py-3 px-2 rounded-2xl border text-center text-xs transition flex flex-col items-center justify-center gap-1">
+            <div class="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center font-black text-xs">O</div>
+            <span class="font-bold">أوريدو</span>
+            <span class="text-[9px] opacity-80">Ooredoo</span>
           </button>
         </div>
 
@@ -661,7 +789,7 @@
       </div>
     </div>
 
-    <!-- Modal 3: Bill Payments -->
+    <!-- Modal 3: Bill Payments (with Authentic Brand Icons for Sonelgaz, Water, Telecom, AADL) -->
     <div x-show="activeModal === 'bills'" class="fixed inset-0 bg-slate-950/60 backdrop-blur-sm z-40 flex items-end sm:items-center justify-center p-0 sm:p-4" x-transition>
       <div class="bg-white w-full max-w-[440px] rounded-t-3xl sm:rounded-3xl p-5 space-y-4 shadow-2xl max-h-[85vh] overflow-y-auto no-scrollbar">
         <div class="flex items-center justify-between pb-2 border-b border-slate-100">
@@ -679,21 +807,37 @@
         </div>
 
         <div class="grid grid-cols-2 gap-2 text-xs">
-          <button @click="billForm.biller = 'سونلغاز (Sonelgaz)'; billForm.amount = 3450" :class="billForm.biller.includes('سونلغاز') ? 'border-amber-500 bg-amber-50 text-amber-800 font-bold' : 'border-slate-200 bg-slate-50 text-slate-700'" class="p-3 rounded-2xl border text-right transition flex items-center gap-2">
-            <img src="assets/canva_ic_sonelgaz.png" class="w-7 h-7 object-contain" alt="">
-            <span>سونلغاز</span>
+          <!-- Sonelgaz -->
+          <button @click="billForm.biller = 'سونلغاز (Sonelgaz)'; billForm.amount = 3450" :class="billForm.biller.includes('سونلغاز') ? 'border-amber-500 bg-amber-50 text-amber-800 font-bold shadow-sm' : 'border-slate-200 bg-slate-50 text-slate-700'" class="p-3 rounded-2xl border text-right transition flex items-center gap-2.5">
+            <img src="assets/canva_ic_sonelgaz.png" class="w-8 h-8 object-contain shrink-0" alt="">
+            <div>
+              <span class="block font-bold">سونلغاز</span>
+              <span class="text-[9px] text-slate-500 block">الكهرباء والغاز</span>
+            </div>
           </button>
-          <button @click="billForm.biller = 'اتصالات الجزائر (Idoom)'; billForm.amount = 2600" :class="billForm.biller.includes('اتصالات') ? 'border-blue-500 bg-blue-50 text-blue-800 font-bold' : 'border-slate-200 bg-slate-50 text-slate-700'" class="p-3 rounded-2xl border text-right transition flex items-center gap-2">
-            <img src="assets/canva_ic_idoom_wifi.png" class="w-7 h-7 object-contain" alt="">
-            <span>اتصالات الجزائر</span>
+          <!-- Algérie Télécom -->
+          <button @click="billForm.biller = 'اتصالات الجزائر (Idoom)'; billForm.amount = 2600" :class="billForm.biller.includes('اتصالات') ? 'border-blue-500 bg-blue-50 text-blue-800 font-bold shadow-sm' : 'border-slate-200 bg-slate-50 text-slate-700'" class="p-3 rounded-2xl border text-right transition flex items-center gap-2.5">
+            <img src="assets/canva_ic_telecom_internet.png" class="w-8 h-8 object-contain shrink-0" alt="">
+            <div>
+              <span class="block font-bold">اتصالات الجزائر</span>
+              <span class="text-[9px] text-slate-500 block">الإنترنت والهاتف</span>
+            </div>
           </button>
-          <button @click="billForm.biller = 'سيال للمياه (SEAAL)'; billForm.amount = 1890" :class="billForm.biller.includes('سيال') ? 'border-cyan-500 bg-cyan-50 text-cyan-800 font-bold' : 'border-slate-200 bg-slate-50 text-slate-700'" class="p-3 rounded-2xl border text-right transition flex items-center gap-2">
-            <img src="assets/canva_ic_water_seall.png" class="w-7 h-7 object-contain" alt="">
-            <span>سيال للمياه</span>
+          <!-- Water SEAAL -->
+          <button @click="billForm.biller = 'سيال للمياه (SEAAL)'; billForm.amount = 1890" :class="billForm.biller.includes('سيال') ? 'border-cyan-500 bg-cyan-50 text-cyan-800 font-bold shadow-sm' : 'border-slate-200 bg-slate-50 text-slate-700'" class="p-3 rounded-2xl border text-right transition flex items-center gap-2.5">
+            <img src="assets/canva_ic_water_seall.png" class="w-8 h-8 object-contain shrink-0" alt="">
+            <div>
+              <span class="block font-bold">سيال للمياه</span>
+              <span class="text-[9px] text-slate-500 block">SEAAL / ADE</span>
+            </div>
           </button>
-          <button @click="billForm.biller = 'سكنات عدل (AADL)'; billForm.amount = 6800" :class="billForm.biller.includes('عدل') ? 'border-emerald-500 bg-emerald-50 text-emerald-800 font-bold' : 'border-slate-200 bg-slate-50 text-slate-700'" class="p-3 rounded-2xl border text-right transition flex items-center gap-2">
-            <img src="assets/canva_ic_aadl_housing.png" class="w-7 h-7 object-contain" alt="">
-            <span>سكنات عدل</span>
+          <!-- AADL -->
+          <button @click="billForm.biller = 'سكنات عدل (AADL)'; billForm.amount = 6800" :class="billForm.biller.includes('عدل') ? 'border-emerald-500 bg-emerald-50 text-emerald-800 font-bold shadow-sm' : 'border-slate-200 bg-slate-50 text-slate-700'" class="p-3 rounded-2xl border text-right transition flex items-center gap-2.5">
+            <img src="assets/canva_ic_aadl_housing.png" class="w-8 h-8 object-contain shrink-0" alt="">
+            <div>
+              <span class="block font-bold">سكنات عدل</span>
+              <span class="text-[9px] text-slate-500 block">الأقساط الشهرية</span>
+            </div>
           </button>
         </div>
 
@@ -713,7 +857,47 @@
       </div>
     </div>
 
-    <!-- Modal 4: Cardless ATM -->
+    <!-- Modal 4: Dedicated Idoom Internet Recharge -->
+    <div x-show="activeModal === 'idoom'" class="fixed inset-0 bg-slate-950/60 backdrop-blur-sm z-40 flex items-end sm:items-center justify-center p-0 sm:p-4" x-transition>
+      <div class="bg-white w-full max-w-[440px] rounded-t-3xl sm:rounded-3xl p-5 space-y-4 shadow-2xl max-h-[85vh] overflow-y-auto no-scrollbar">
+        <div class="flex items-center justify-between pb-2 border-b border-slate-100">
+          <div class="flex items-center gap-2">
+            <img src="assets/canva_ic_idoom_wifi.png" class="w-7 h-7 object-contain" alt="">
+            <h3 class="font-bold text-sm text-dz-navyText">إنترنت منزلي Idoom (ADSL / Fibre)</h3>
+          </div>
+          <button @click="activeModal = null" class="text-slate-400 hover:text-dz-navyText">
+            <i data-lucide="x" class="w-5 h-5"></i>
+          </button>
+        </div>
+
+        <div class="bg-blue-50 border border-blue-200 rounded-2xl p-3 text-center space-y-1">
+          <span class="text-xs font-bold text-dz-bluePrimary block">Algérie Télécom • اتصالات الجزائر</span>
+          <span class="text-[10px] text-slate-600 block">شحن مباشر فوري لااشتراكات Idoom Fibre و ADSL</span>
+        </div>
+
+        <div class="space-y-3 text-xs">
+          <div>
+            <label class="font-bold text-slate-600 mb-1 block">رقم الاشتراك أو الهاتف الثابت</label>
+            <input type="text" x-model="idoomPhone" placeholder="021 74 85 96" class="w-full bg-slate-50 border border-dz-inputBorder rounded-xl px-3.5 py-2.5 font-mono text-dz-navyText">
+          </div>
+
+          <div>
+            <label class="font-bold text-slate-600 mb-1 block">اختر الباقة الشهرية</label>
+            <div class="grid grid-cols-3 gap-2">
+              <button @click="idoomAmount = 1600" :class="idoomAmount === 1600 ? 'bg-dz-bluePrimary text-white font-bold' : 'bg-slate-100 text-slate-700'" class="py-2.5 rounded-xl text-xs font-poppins transition">1,600 دج</button>
+              <button @click="idoomAmount = 2000" :class="idoomAmount === 2000 ? 'bg-dz-bluePrimary text-white font-bold' : 'bg-slate-100 text-slate-700'" class="py-2.5 rounded-xl text-xs font-poppins transition">2,000 دج</button>
+              <button @click="idoomAmount = 2500" :class="idoomAmount === 2500 ? 'bg-dz-bluePrimary text-white font-bold' : 'bg-slate-100 text-slate-700'" class="py-2.5 rounded-xl text-xs font-poppins transition">2,500 دج</button>
+            </div>
+          </div>
+
+          <button @click="executeIdoomPay()" class="w-full py-3 bg-dz-bluePrimary hover:bg-dz-blueDark text-white font-bold rounded-2xl shadow-lg transition">
+            متابعة ودفع الاشتراك فورياً
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal 5: Cardless ATM -->
     <div x-show="activeModal === 'atm'" class="fixed inset-0 bg-slate-950/60 backdrop-blur-sm z-40 flex items-end sm:items-center justify-center p-0 sm:p-4" x-transition>
       <div class="bg-white w-full max-w-[440px] rounded-t-3xl sm:rounded-3xl p-5 space-y-4 shadow-2xl max-h-[85vh] overflow-y-auto no-scrollbar text-center">
         <div class="flex items-center justify-between pb-2 border-b border-slate-100">
@@ -756,7 +940,25 @@
       </div>
     </div>
 
-    <!-- Modal 5: Digital Postal Receipt -->
+    <!-- Modal 6: Biometric Scanner Dialog -->
+    <div x-show="activeModal === 'biometricScanner'" class="fixed inset-0 bg-slate-950/70 backdrop-blur-md z-50 flex items-center justify-center p-4" x-transition>
+      <div class="bg-white w-full max-w-sm rounded-3xl p-6 space-y-4 shadow-2xl text-center">
+        <h3 class="text-base font-black text-dz-navyText">مسح بصمة الإصبع الحقيقي</h3>
+        <p class="text-xs text-dz-slateText">ضع إصبعك على مستشعر البصمة في هاتفك لفتح المحفظة</p>
+
+        <div class="w-24 h-24 rounded-full bg-blue-50 border-4 border-dz-bluePrimary flex items-center justify-center mx-auto cursor-pointer animate-pulse" @click="completeBiometricLogin()">
+          <img src="assets/canva_ic_fingerprint.png" alt="Fingerprint" class="w-14 h-14 object-contain">
+        </div>
+
+        <p class="text-[11px] text-emerald-600 font-bold">اضغط على البصمة أعلاه لمحاكاة المسح الفوري</p>
+
+        <button @click="activeModal = null" class="w-full py-2.5 bg-slate-100 text-dz-navyText rounded-xl text-xs font-bold">
+          إلغاء
+        </button>
+      </div>
+    </div>
+
+    <!-- Modal 7: Digital Postal Receipt -->
     <div x-show="selectedReceipt" class="fixed inset-0 bg-slate-950/70 backdrop-blur-md z-50 flex items-center justify-center p-4" x-transition>
       <div class="bg-white w-full max-w-sm rounded-3xl p-6 space-y-4 shadow-2xl relative text-center">
         <img src="assets/canva_illus_success_check.png" class="w-16 h-16 mx-auto object-contain mb-1" alt="">
@@ -803,6 +1005,9 @@
     function dinarPayApp() {
       return {
         isAppDisabled: false, // Killswitch
+        splashStage: 0, // 0 = Logo Splash, 1 = Maqam Echahid Splash, 2 = Main App / Auth Gate
+        isAuthenticated: true, // Default unlocked for smooth preview
+        authMode: 'login', // 'login' or 'signup'
         currentTab: 'home', // 'home', 'transactions', 'services', 'more'
         userName: 'أحمد محمد بن علي',
         ripNumber: '00799999004125898421',
@@ -824,6 +1029,8 @@
         transferForm: { rip: '', name: '', amount: null },
         topupForm: { operator: 'Mobilis', phone: '', amount: 1000 },
         billForm: { biller: 'سونلغاز (Sonelgaz)', ref: '', amount: 3450 },
+        idoomPhone: '021748596',
+        idoomAmount: 2000,
         atmAmount: '5000',
         atmCode: null,
 
@@ -847,7 +1054,35 @@
           if (savedStatus === 'true') {
             this.isAppDisabled = true;
           }
+          // Auto advance splash screen stage 0 -> 1 -> 2
+          setTimeout(() => {
+            if (this.splashStage === 0) this.splashStage = 1;
+          }, 1400);
           this.$nextTick(() => { lucide.createIcons(); });
+        },
+
+        nextSplashStage() {
+          if (this.splashStage < 2) this.splashStage++;
+        },
+
+        loginWithGoogle() {
+          this.isAuthenticated = true;
+          this.splashStage = 2;
+          this.showToast('تم تسجيل الدخول بنجاح عبر حساب Google ✓');
+        },
+
+        completeBiometricLogin() {
+          this.isAuthenticated = true;
+          this.activeModal = null;
+          this.splashStage = 2;
+          this.showToast('تم فتح المحفظة بالبصمة الحقيقية بنجاح ✓');
+        },
+
+        logout() {
+          this.isAuthenticated = false;
+          this.splashStage = 2;
+          this.authMode = 'login';
+          this.showToast('تم تسجيل الخروج بنجاح');
         },
 
         updateClock() {
@@ -944,6 +1179,27 @@
             title: 'تسديد فاتورة ' + this.billForm.biller,
             recipient: this.billForm.biller,
             amount: this.billForm.amount,
+            isIncome: false,
+            date: 'الآن'
+          };
+          this.transactions.unshift(newTx);
+          this.activeModal = null;
+          this.selectedReceipt = newTx;
+          this.$nextTick(() => { lucide.createIcons(); });
+        },
+
+        executeIdoomPay() {
+          if (this.idoomAmount > this.balance) {
+            this.showToast('عذراً، الرصيد المتاح غير كافٍ');
+            return;
+          }
+
+          this.balance -= this.idoomAmount;
+          const newTx = {
+            id: 'TX-DZ-' + Math.floor(100000 + Math.random() * 900000),
+            title: 'شحن إنترنت Idoom (ADSL / Fibre)',
+            recipient: 'اتصالات الجزائر ' + this.idoomPhone,
+            amount: this.idoomAmount,
             isIncome: false,
             date: 'الآن'
           };

@@ -181,19 +181,25 @@ fun AppNavigation(auth: FirebaseAuth = Firebase.auth) {
     val currentUser by auth.authStateFlow().collectAsStateWithLifecycle(initialValue = auth.currentUser)
     val sessionUnlocked by PayDzAuthManager.sessionUnlockedFlow.collectAsStateWithLifecycle()
     val isBioEnrolled = PayDzAuthManager.isFingerprintEnrolled(context)
-    var showSplash by rememberSaveable { mutableStateOf(true) }
+    var splashStage by rememberSaveable { mutableIntStateOf(0) } // 0 = Logo Splash, 1 = Maqam Echahid Splash, 2 = Main App
 
     LaunchedEffect(Unit) {
-        delay(1700L)
-        showSplash = false
+        delay(1200L)
+        splashStage = 1
+        delay(1600L)
+        splashStage = 2
     }
 
-    if (showSplash) {
-        PayDzSplashScreen(onDismissSplash = { showSplash = false })
+    if (splashStage < 2) {
+        if (splashStage == 0) {
+            PayDzInitialLogoSplashScreen(onDismiss = { splashStage = 1 })
+        } else {
+            PayDzSplashScreen(onDismissSplash = { splashStage = 2 })
+        }
     } else {
         val user = currentUser
         if (user == null) {
-            AuthGateScreen(onReplaySplash = { showSplash = true })
+            AuthGateScreen(onReplaySplash = { splashStage = 0 })
         } else if (isBioEnrolled && !sessionUnlocked) {
             // Once biometric fingerprint is enrolled, THE APP DOES NOT OPEN EXCEPT WITH BIOMETRIC OR SECRET APP PIN!
             val activeName = PayDzAuthManager.getActiveNameOverride(context)
@@ -214,7 +220,7 @@ fun AppNavigation(auth: FirebaseAuth = Firebase.auth) {
                 }
             )
         } else if (!sessionUnlocked) {
-            AuthGateScreen(onReplaySplash = { showSplash = true })
+            AuthGateScreen(onReplaySplash = { splashStage = 0 })
         } else {
             val activeName = PayDzAuthManager.getActiveNameOverride(context)
                 ?: user.displayName
@@ -227,6 +233,49 @@ fun AppNavigation(auth: FirebaseAuth = Firebase.auth) {
                     currentUserId = user.uid,
                     userDisplayName = activeName,
                     userEmail = activeEmail
+                )
+            }
+        }
+    }
+}
+
+/**
+ * SCREEN 0 OF PAYDZ MOCKUP: شاشة الشعار الأولى (Initial Logo & Branding Splash Screen)
+ * Displays large white PayDz logo on deep royal blue background + animated spinner before Maqam Echahid splash screen
+ */
+@Composable
+fun PayDzInitialLogoSplashScreen(onDismiss: () -> Unit) {
+    CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Rtl) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(
+                    Brush.verticalGradient(
+                        listOf(
+                            PayDzBlueDark,
+                            PayDzBluePrimary,
+                            Color(0xFF002F87)
+                        )
+                    )
+                )
+                .clickable { onDismiss() }
+                .testTag("paydz_initial_logo_splash"),
+            contentAlignment = Alignment.Center
+        ) {
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(24.dp)
+            ) {
+                PayDzSpeedWalletLogo(
+                    isDarkBackground = true,
+                    iconSize = 135.dp
+                )
+
+                Image(
+                    painter = painterResource(id = R.drawable.canva_splash_spinner),
+                    contentDescription = "Loading Spinner",
+                    contentScale = ContentScale.Fit,
+                    modifier = Modifier.size(38.dp)
                 )
             }
         }
