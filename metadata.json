@@ -1,0 +1,8 @@
+{
+  "name": "Remix Baridi Mobile Clone",
+  "description": "A secure, full-featured banking application offering seamless payment, transfer services, and 24/7 technical support for users.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

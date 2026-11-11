@@ -1,0 +1,14 @@
+<resources>
+    <string name="app_name">PayDz</string>
+    <string name="sandbox_banner_ar">بيئة محاكاة مالية آمنة (Sandbox) — جميع العمليات تجريبية ولا تمثل سحباً حقيقياً من بريد الجزائر</string>
+    <string name="sandbox_banner_fr">Environnement Sandbox sécurisé — Toutes les opérations sont simulées à titre de démonstration</string>
+    <string name="sign_in_google_ar">تسجيل الدخول عبر حساب Google الموثق</string>
+    <string name="sign_in_google_fr">Se connecter avec Google</string>
+    <string name="auth_subtitle_ar">الجيل الجديد من المحافظ الرقمية والخدمات المالية الذكية بحماية سحابية مشفرة Zero-Trust</string>
+    <string name="auth_subtitle_fr">Portefeuille numérique de nouvelle génération avec protection Cloud Zero-Trust</string>
+    <string name="tab_home_ar">الرئيسية</string>
+    <string name="tab_analytics_ar">التحليل الذكي</string>
+    <string name="tab_card_ar">البطاقة الذهبية</string>
+    <string name="tab_history_ar">المعاملات</string>
+    <string name="tab_support_ar">الدعم 24/7</string>
+</resources>

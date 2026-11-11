@@ -1,0 +1,993 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>DinarPay - المعاينة التفاعلية لتطبيق بريدي موب</title>
+  <!-- Google Fonts: Cairo & Poppins -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Alpine.js CDN for lightweight reactive state -->
+  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.3/dist/cdn.min.js"></script>
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            cairo: ['Cairo', 'sans-serif'],
+            poppins: ['Poppins', 'sans-serif'],
+          },
+          colors: {
+            dz: {
+              navy: '#071828',
+              navyCard: '#0D233A',
+              navyLight: '#14314F',
+              gold: '#F59E0B',
+              goldDark: '#D97706',
+              green: '#10B981',
+              greenDark: '#059669',
+              red: '#EF4444',
+              blue: '#2563EB',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body {
+      font-family: 'Cairo', sans-serif;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+    /* Phone Mockup Frame Shadow */
+    .phone-shadow {
+      box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.7), 0 0 0 12px #1f2937, 0 0 0 14px #374151;
+    }
+    @keyframes pulse-slow {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.85; transform: scale(1.03); }
+    }
+    .pulse-glow {
+      animation: pulse-slow 3s infinite ease-in-out;
+    }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col items-center justify-center p-0 md:p-6 overflow-x-hidden" x-data="dinarPayApp()" x-init="initApp()">
+
+  <!-- Top Floating Client Watermark / Freelancer Shield Bar -->
+  <header class="w-full max-w-4xl mb-4 hidden md:flex items-center justify-between bg-slate-900/90 border border-slate-800 rounded-2xl px-6 py-3 shadow-xl backdrop-blur-md">
+    <div class="flex items-center gap-3">
+      <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-amber-500 to-yellow-400 flex items-center justify-center text-slate-950 font-black shadow-lg">
+        <i data-lucide="shield-check" class="w-6 h-6"></i>
+      </div>
+      <div>
+        <div class="flex items-center gap-2">
+          <h1 class="font-bold text-lg text-white">DinarPay - نسخة المعاينة الحية للعميل</h1>
+          <span class="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30">
+            Interactive Live Demo
+          </span>
+        </div>
+        <p class="text-xs text-slate-400">يمكنك تجربة جميع وظائف التحويل والدفع وسحب الأموال كمعاينة مباشرة قبل استلام نسخة التطبيق (APK)</p>
+      </div>
+    </div>
+    <div class="flex items-center gap-3">
+      <button @click="resetDemoData()" class="text-xs px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-medium transition flex items-center gap-1.5 border border-slate-700">
+        <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i>
+        <span>إعادة تعيين الرصيد التجريبي</span>
+      </button>
+      <div class="text-right">
+        <span class="text-xs font-bold text-emerald-400 block">● متصل بقاعدة بيانات تجريبية</span>
+        <span class="text-[11px] text-slate-400">النسخة الأصلية APK جاهزة للتسليم</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Container: Realistic Smartphone Mockup -->
+  <main class="w-full md:max-w-[412px] h-[100dvh] md:h-[844px] bg-dz-navy md:rounded-[44px] overflow-hidden flex flex-col relative md:phone-shadow border-0 md:border-4 md:border-slate-800">
+
+    <!-- Mobile Top Notch & Status Bar -->
+    <div class="h-11 bg-dz-navy flex items-center justify-between px-6 pt-2 shrink-0 select-none z-20">
+      <span class="text-xs font-bold text-slate-300 font-poppins" x-text="currentTime">12:30</span>
+      <div class="w-24 h-4 bg-slate-900 rounded-full mx-auto hidden md:block"></div>
+      <div class="flex items-center gap-1.5 text-slate-400 text-xs">
+        <i data-lucide="wifi" class="w-3.5 h-3.5"></i>
+        <i data-lucide="signal" class="w-3.5 h-3.5"></i>
+        <i data-lucide="battery-charging" class="w-4 h-4 text-emerald-400"></i>
+      </div>
+    </div>
+
+    <!-- Client Notice Banner inside the phone -->
+    <div class="bg-gradient-to-r from-amber-600 to-amber-700 text-slate-950 px-4 py-1 text-[11px] font-bold text-center flex items-center justify-center gap-1.5 shrink-0 shadow-sm">
+      <i data-lucide="info" class="w-3 h-3 text-slate-950"></i>
+      <span>نسخة معاينة تجريبية تفاعلية خاصة بالعميل | DinarPay Live</span>
+    </div>
+
+    <!-- Screen Flow Content Area -->
+    <div class="flex-1 overflow-y-auto no-scrollbar relative flex flex-col">
+
+      <!-- ================= SCREEN 1: AUTH / LOGIN ================= -->
+      <template x-if="currentScreen === 'auth'">
+        <div class="flex-1 p-6 flex flex-col justify-between bg-gradient-to-b from-dz-navy via-slate-950 to-slate-900">
+          <div class="pt-8 text-center flex flex-col items-center">
+            <div class="w-20 h-20 rounded-3xl bg-gradient-to-tr from-dz-blue to-emerald-400 flex items-center justify-center shadow-2xl p-1 mb-4 pulse-glow">
+              <div class="w-full h-full bg-dz-navy rounded-[22px] flex items-center justify-center">
+                <i data-lucide="wallet" class="w-10 h-10 text-amber-400"></i>
+              </div>
+            </div>
+            <h2 class="text-2xl font-black tracking-tight text-white mb-1">DinarPay | بريدي موب</h2>
+            <p class="text-xs text-slate-400 max-w-[240px]">المحفظة الرقمية الذكية للمعاملات المالية بالدينار الجزائري</p>
+          </div>
+
+          <div class="bg-dz-navyCard/90 border border-slate-800 rounded-3xl p-5 shadow-2xl space-y-4 my-auto">
+            <div class="flex rounded-xl bg-slate-900 p-1 border border-slate-800 text-xs font-bold">
+              <button @click="authTab = 'signin'" :class="authTab === 'signin' ? 'bg-dz-blue text-white shadow-md' : 'text-slate-400'" class="flex-1 py-2 rounded-lg transition">تسجيل الدخول</button>
+              <button @click="authTab = 'quick'" :class="authTab === 'quick' ? 'bg-amber-500 text-slate-950 shadow-md' : 'text-slate-400'" class="flex-1 py-2 rounded-lg transition">دخول تجريبي فوري</button>
+            </div>
+
+            <template x-if="authTab === 'signin'">
+              <div class="space-y-3">
+                <div>
+                  <label class="text-[11px] font-semibold text-slate-400 mb-1 block">البريد الإلكتروني أو رقم الهاتف</label>
+                  <input type="text" x-model="loginInput" placeholder="user@gmail.com أو 0612345678" class="w-full bg-slate-900/90 border border-slate-700/80 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-dz-blue">
+                </div>
+                <div>
+                  <label class="text-[11px] font-semibold text-slate-400 mb-1 block">كود سر التطبيق (PIN)</label>
+                  <input type="password" maxlength="4" x-model="pinInput" placeholder="•••• (افتراضي 1234)" class="w-full bg-slate-900/90 border border-slate-700/80 rounded-xl px-3.5 py-2.5 text-center text-sm font-bold tracking-widest text-white focus:outline-none focus:border-dz-blue">
+                </div>
+                <button @click="handleLogin()" class="w-full py-3 bg-gradient-to-r from-blue-600 to-dz-blue hover:from-blue-500 hover:to-blue-600 rounded-xl font-bold text-xs text-white shadow-lg transition flex items-center justify-center gap-2">
+                  <i data-lucide="log-in" class="w-4 h-4"></i>
+                  <span>دخول إلى الحساب</span>
+                </button>
+              </div>
+            </template>
+
+            <template x-if="authTab === 'quick'">
+              <div class="space-y-3 text-center py-2">
+                <p class="text-xs text-slate-300">لتسهيل المعاينة للعميل، يمكنك الدخول مباشرة بحساب بريدي تجريبي برصيد 185,450.00 دج</p>
+                <button @click="quickDemoLogin()" class="w-full py-3 bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-400 hover:to-yellow-400 text-slate-950 font-black rounded-xl text-xs shadow-lg transition flex items-center justify-center gap-2">
+                  <i data-lucide="sparkles" class="w-4 h-4"></i>
+                  <span>بدء تجربة التطبيق فوراً</span>
+                </button>
+              </div>
+            </template>
+
+            <div class="relative flex items-center justify-center my-2">
+              <div class="border-t border-slate-800 w-full"></div>
+              <span class="bg-dz-navyCard px-2 text-[10px] text-slate-500 uppercase font-semibold">أو عبر المصادقة الحيوية</span>
+            </div>
+
+            <button @click="simulateBiometric()" class="w-full py-2.5 bg-slate-900 hover:bg-slate-800 border border-slate-700/80 rounded-xl text-xs font-semibold text-slate-200 flex items-center justify-center gap-2 transition">
+              <i data-lucide="fingerprint" class="w-5 h-5 text-amber-400"></i>
+              <span>الدخول ببصمة الإصبع الحيوية</span>
+            </button>
+          </div>
+
+          <p class="text-[10px] text-slate-500 text-center pb-2">محمي بتقنية التشفير البنكي Zero-Trust Security</p>
+        </div>
+      </template>
+
+      <!-- ================= SCREEN 2: MAIN DASHBOARD ================= -->
+      <template x-if="currentScreen === 'dashboard'">
+        <div class="flex-1 p-4 pb-20 space-y-4">
+
+          <!-- User Header -->
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2.5">
+              <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-amber-500 to-yellow-400 p-0.5 shadow-md">
+                <div class="w-full h-full bg-dz-navy rounded-full flex items-center justify-center font-bold text-amber-400 text-xs">
+                  أ.م
+                </div>
+              </div>
+              <div>
+                <span class="text-[11px] text-slate-400 block font-medium">مرحباً بك مجدداً</span>
+                <span class="text-sm font-bold text-white block" x-text="userName">أحمد محمد بن علي</span>
+              </div>
+            </div>
+            <div class="flex items-center gap-2">
+              <button @click="showNotifToast('لا توجد إشعارات معلقة')" class="w-9 h-9 rounded-xl bg-slate-900 border border-slate-800 flex items-center justify-center text-slate-300 hover:text-white transition relative">
+                <i data-lucide="bell" class="w-4 h-4"></i>
+                <span class="w-2 h-2 rounded-full bg-amber-400 absolute top-2 right-2"></span>
+              </button>
+              <button @click="currentScreen = 'auth'" class="w-9 h-9 rounded-xl bg-slate-900 border border-slate-800 flex items-center justify-center text-rose-400 hover:text-rose-300 transition" title="تسجيل الخروج">
+                <i data-lucide="log-out" class="w-4 h-4"></i>
+              </button>
+            </div>
+          </div>
+
+          <!-- Balance & CCP Account Card -->
+          <div class="rounded-3xl bg-gradient-to-br from-dz-navyCard via-slate-900 to-dz-navy border border-slate-800 p-5 shadow-2xl relative overflow-hidden">
+            <div class="absolute -left-10 -bottom-10 w-40 h-40 bg-dz-blue/10 rounded-full blur-2xl pointer-events-none"></div>
+            
+            <div class="flex items-center justify-between mb-2">
+              <span class="text-xs font-semibold text-slate-400 flex items-center gap-1.5">
+                <i data-lucide="wallet-cards" class="w-4 h-4 text-amber-400"></i>
+                <span>رصيد الحساب الجاري (CCP)</span>
+              </span>
+              <button @click="showBalance = !showBalance" class="text-slate-400 hover:text-slate-200">
+                <i :data-lucide="showBalance ? 'eye' : 'eye-off'" class="w-4 h-4"></i>
+              </button>
+            </div>
+
+            <div class="mb-4">
+              <div class="text-2xl font-black tracking-tight text-white font-poppins flex items-baseline gap-1.5">
+                <span x-text="showBalance ? formatMoney(balance) : '••••••••'">185,450.00</span>
+                <span class="text-sm font-bold text-amber-400 font-cairo">دج</span>
+              </div>
+              <span class="text-[10px] text-emerald-400 font-medium">● حساب نشط وموثق مع بريد الجزائر</span>
+            </div>
+
+            <div class="pt-3 border-t border-slate-800/80 flex items-center justify-between text-[11px] font-poppins text-slate-300">
+              <div>
+                <span class="text-[10px] text-slate-500 font-cairo block">رقم الـ RIP الموحد:</span>
+                <span class="font-mono font-bold tracking-wider text-amber-300" x-text="ripNumber">00799999004125898421</span>
+              </div>
+              <button @click="copyRip()" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-[10px] font-cairo flex items-center gap-1 transition">
+                <i data-lucide="copy" class="w-3 h-3"></i>
+                <span>نسخ</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Virtual Edahabia Card (الذهبية الافتراضية) -->
+          <div class="rounded-3xl bg-gradient-to-r from-amber-600 via-amber-500 to-yellow-500 p-5 shadow-xl text-slate-950 relative overflow-hidden">
+            <div class="absolute right-0 top-0 w-32 h-32 bg-white/10 rounded-full blur-xl pointer-events-none"></div>
+            <div class="flex items-center justify-between mb-6">
+              <div class="flex items-center gap-2">
+                <span class="font-black text-sm tracking-wider uppercase">الذهبية | EDAHABIA</span>
+                <span class="text-[10px] font-bold px-2 py-0.5 bg-slate-950/20 rounded-full">افتراضية</span>
+              </div>
+              <i data-lucide="wifi" class="w-6 h-6 rotate-90"></i>
+            </div>
+            
+            <div class="text-center my-3">
+              <span class="text-lg font-black tracking-widest font-mono select-all" x-text="cardFrozen ? '•••• •••• •••• ••••' : '5030 8645 9210 4128'">
+                5030 8645 9210 4128
+              </span>
+            </div>
+
+            <div class="flex items-center justify-between text-xs font-bold pt-2">
+              <div>
+                <span class="text-[9px] block text-slate-900/70">صاحب البطاقة</span>
+                <span class="uppercase text-[11px] tracking-wide" x-text="userName">AHMED BENALI</span>
+              </div>
+              <div class="text-left">
+                <span class="text-[9px] block text-slate-900/70">تاريخ الصلاحية</span>
+                <span class="font-mono text-[11px]">08/29</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Quick Actions Grid -->
+          <div class="space-y-2">
+            <h3 class="text-xs font-bold text-slate-400 px-1">الخدمات السريعة</h3>
+            <div class="grid grid-cols-4 gap-2.5">
+              
+              <!-- Action 1: Send Money -->
+              <button @click="openModal('transfer')" class="flex flex-col items-center justify-center p-3 rounded-2xl bg-dz-navyCard border border-slate-800 hover:border-dz-blue transition group">
+                <div class="w-10 h-10 rounded-xl bg-blue-500/10 text-blue-400 flex items-center justify-center mb-1.5 group-hover:bg-blue-500 group-hover:text-white transition">
+                  <i data-lucide="send" class="w-5 h-5"></i>
+                </div>
+                <span class="text-[10px] font-bold text-slate-200">تحويل مالي</span>
+              </button>
+
+              <!-- Action 2: Top-Up Flexy -->
+              <button @click="openModal('topup')" class="flex flex-col items-center justify-center p-3 rounded-2xl bg-dz-navyCard border border-slate-800 hover:border-amber-400 transition group">
+                <div class="w-10 h-10 rounded-xl bg-amber-500/10 text-amber-400 flex items-center justify-center mb-1.5 group-hover:bg-amber-500 group-hover:text-slate-950 transition">
+                  <i data-lucide="smartphone" class="w-5 h-5"></i>
+                </div>
+                <span class="text-[10px] font-bold text-slate-200">تعبئة رصيد</span>
+              </button>
+
+              <!-- Action 3: Bills -->
+              <button @click="openModal('bills')" class="flex flex-col items-center justify-center p-3 rounded-2xl bg-dz-navyCard border border-slate-800 hover:border-emerald-400 transition group">
+                <div class="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center mb-1.5 group-hover:bg-emerald-500 group-hover:text-white transition">
+                  <i data-lucide="receipt" class="w-5 h-5"></i>
+                </div>
+                <span class="text-[10px] font-bold text-slate-200">دفع فواتير</span>
+              </button>
+
+              <!-- Action 4: ATM Cardless -->
+              <button @click="openModal('atm')" class="flex flex-col items-center justify-center p-3 rounded-2xl bg-dz-navyCard border border-slate-800 hover:border-purple-400 transition group">
+                <div class="w-10 h-10 rounded-xl bg-purple-500/10 text-purple-400 flex items-center justify-center mb-1.5 group-hover:bg-purple-500 group-hover:text-white transition">
+                  <i data-lucide="banknote" class="w-5 h-5"></i>
+                </div>
+                <span class="text-[10px] font-bold text-slate-200">سحب ATM</span>
+              </button>
+
+              <!-- Action 5: Card Security -->
+              <button @click="openModal('security')" class="flex flex-col items-center justify-center p-3 rounded-2xl bg-dz-navyCard border border-slate-800 hover:border-rose-400 transition group">
+                <div class="w-10 h-10 rounded-xl bg-rose-500/10 text-rose-400 flex items-center justify-center mb-1.5 group-hover:bg-rose-500 group-hover:text-white transition">
+                  <i data-lucide="shield" class="w-5 h-5"></i>
+                </div>
+                <span class="text-[10px] font-bold text-slate-200">أمان البطاقة</span>
+              </button>
+
+              <!-- Action 6: Beneficiaries -->
+              <button @click="openModal('beneficiaries')" class="flex flex-col items-center justify-center p-3 rounded-2xl bg-dz-navyCard border border-slate-800 hover:border-cyan-400 transition group">
+                <div class="w-10 h-10 rounded-xl bg-cyan-500/10 text-cyan-400 flex items-center justify-center mb-1.5 group-hover:bg-cyan-500 group-hover:text-white transition">
+                  <i data-lucide="users" class="w-5 h-5"></i>
+                </div>
+                <span class="text-[10px] font-bold text-slate-200">المستفيدون</span>
+              </button>
+
+              <!-- Action 7: Support -->
+              <button @click="openModal('support')" class="flex flex-col items-center justify-center p-3 rounded-2xl bg-dz-navyCard border border-slate-800 hover:border-indigo-400 transition group">
+                <div class="w-10 h-10 rounded-xl bg-indigo-500/10 text-indigo-400 flex items-center justify-center mb-1.5 group-hover:bg-indigo-500 group-hover:text-white transition">
+                  <i data-lucide="headset" class="w-5 h-5"></i>
+                </div>
+                <span class="text-[10px] font-bold text-slate-200">الدعم الفني</span>
+              </button>
+
+              <!-- Action 8: Reset Demo -->
+              <button @click="resetDemoData()" class="flex flex-col items-center justify-center p-3 rounded-2xl bg-dz-navyCard border border-slate-800 hover:border-slate-600 transition group">
+                <div class="w-10 h-10 rounded-xl bg-slate-800 text-slate-400 flex items-center justify-center mb-1.5 group-hover:bg-slate-700 group-hover:text-white transition">
+                  <i data-lucide="refresh-cw" class="w-5 h-5"></i>
+                </div>
+                <span class="text-[10px] font-bold text-slate-300">إعادة تعيين</span>
+              </button>
+
+            </div>
+          </div>
+
+          <!-- Transactions History -->
+          <div class="space-y-2">
+            <div class="flex items-center justify-between px-1">
+              <h3 class="text-xs font-bold text-slate-400">آخر المعاملات</h3>
+              <span class="text-[10px] text-amber-400 font-semibold" x-text="transactions.length + ' عمليات'"></span>
+            </div>
+
+            <div class="space-y-2">
+              <template x-for="tx in transactions" :key="tx.id">
+                <div class="p-3 rounded-2xl bg-dz-navyCard/80 border border-slate-800 flex items-center justify-between hover:bg-dz-navyLight transition cursor-pointer" @click="viewReceipt(tx)">
+                  <div class="flex items-center gap-3">
+                    <div class="w-9 h-9 rounded-xl flex items-center justify-center shrink-0" :class="tx.isIncome ? 'bg-emerald-500/10 text-emerald-400' : 'bg-rose-500/10 text-rose-400'">
+                      <i :data-lucide="tx.isIncome ? 'arrow-down-left' : 'arrow-up-right'" class="w-4 h-4"></i>
+                    </div>
+                    <div>
+                      <span class="text-xs font-bold text-slate-200 block" x-text="tx.title"></span>
+                      <span class="text-[10px] text-slate-400 block" x-text="tx.date + ' • ' + tx.recipient"></span>
+                    </div>
+                  </div>
+                  <div class="text-left font-poppins">
+                    <span class="text-xs font-bold block" :class="tx.isIncome ? 'text-emerald-400' : 'text-slate-200'" x-text="(tx.isIncome ? '+' : '-') + formatMoney(tx.amount) + ' دج'"></span>
+                    <span class="text-[9px] text-emerald-400 font-cairo">مكتملة ✓</span>
+                  </div>
+                </div>
+              </template>
+            </div>
+          </div>
+
+        </div>
+      </template>
+
+    </div>
+
+    <!-- ================= BOTTOM NAVIGATION BAR ================= -->
+    <template x-if="currentScreen === 'dashboard'">
+      <div class="h-16 bg-dz-navy/95 border-t border-slate-800/80 px-6 flex items-center justify-around shrink-0 z-20">
+        <button class="flex flex-col items-center gap-1 text-amber-400">
+          <i data-lucide="home" class="w-5 h-5"></i>
+          <span class="text-[9px] font-bold">الرئيسية</span>
+        </button>
+        <button @click="openModal('transfer')" class="flex flex-col items-center gap-1 text-slate-400 hover:text-white transition">
+          <i data-lucide="arrow-left-right" class="w-5 h-5"></i>
+          <span class="text-[9px] font-medium">التحويلات</span>
+        </button>
+        <button @click="openModal('security')" class="flex flex-col items-center gap-1 text-slate-400 hover:text-white transition">
+          <i data-lucide="credit-card" class="w-5 h-5"></i>
+          <span class="text-[9px] font-medium">البطاقة</span>
+        </button>
+        <button @click="openModal('support')" class="flex flex-col items-center gap-1 text-slate-400 hover:text-white transition">
+          <i data-lucide="message-square" class="w-5 h-5"></i>
+          <span class="text-[9px] font-medium">الدعم</span>
+        </button>
+      </div>
+    </template>
+
+    <!-- ================= MODALS & POPUPS ================= -->
+
+    <!-- 1. Modal: Send Money (P2P Transfer) -->
+    <template x-if="activeModal === 'transfer'">
+      <div class="absolute inset-0 bg-slate-950/80 backdrop-blur-sm z-30 flex flex-col justify-end p-4">
+        <div class="bg-dz-navyCard border border-slate-800 rounded-3xl p-5 space-y-4 max-h-[90%] overflow-y-auto no-scrollbar shadow-2xl">
+          <div class="flex items-center justify-between pb-2 border-b border-slate-800">
+            <h3 class="font-bold text-sm text-white flex items-center gap-2">
+              <i data-lucide="send" class="w-4 h-4 text-blue-400"></i>
+              <span>تحويل مالي فوري (بريدي موب)</span>
+            </h3>
+            <button @click="activeModal = null" class="text-slate-400 hover:text-white">
+              <i data-lucide="x" class="w-5 h-5"></i>
+            </button>
+          </div>
+
+          <div class="space-y-3">
+            <div>
+              <label class="text-[11px] font-medium text-slate-400 mb-1 block">رقم الـ RIP للمستفيد (20 رقماً)</label>
+              <input type="text" maxlength="20" x-model="transferForm.rip" placeholder="0079999900..." class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3.5 py-2.5 text-xs font-mono text-white focus:outline-none focus:border-dz-blue">
+            </div>
+            <div>
+              <label class="text-[11px] font-medium text-slate-400 mb-1 block">اسم المستفيد</label>
+              <input type="text" x-model="transferForm.name" placeholder="محمد بلقاسم" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-dz-blue">
+            </div>
+            <div>
+              <label class="text-[11px] font-medium text-slate-400 mb-1 block">المبلغ بالدينار (DZD)</label>
+              <input type="number" x-model.number="transferForm.amount" placeholder="مثال: 5000" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3.5 py-2.5 text-sm font-bold font-poppins text-white focus:outline-none focus:border-dz-blue">
+            </div>
+
+            <div class="p-3 bg-slate-900/60 rounded-xl text-xs space-y-1 border border-slate-800">
+              <div class="flex justify-between text-slate-400">
+                <span>رسوم التحويل:</span>
+                <span class="text-emerald-400 font-bold">مجاناً (0 دج)</span>
+              </div>
+              <div class="flex justify-between text-white font-bold pt-1 border-t border-slate-800">
+                <span>المبلغ الإجمالي المقتطع:</span>
+                <span x-text="formatMoney(transferForm.amount || 0) + ' دج'"></span>
+              </div>
+            </div>
+
+            <button @click="executeTransfer()" class="w-full py-3 bg-gradient-to-r from-blue-600 to-dz-blue hover:from-blue-500 hover:to-blue-600 text-white font-bold rounded-xl text-xs shadow-lg transition">
+              تأكيد وإرسال التحويل الآن
+            </button>
+          </div>
+        </div>
+      </div>
+    </template>
+
+    <!-- 2. Modal: Flexy / Mobile Top-Up -->
+    <template x-if="activeModal === 'topup'">
+      <div class="absolute inset-0 bg-slate-950/80 backdrop-blur-sm z-30 flex flex-col justify-end p-4">
+        <div class="bg-dz-navyCard border border-slate-800 rounded-3xl p-5 space-y-4 max-h-[90%] overflow-y-auto no-scrollbar shadow-2xl">
+          <div class="flex items-center justify-between pb-2 border-b border-slate-800">
+            <h3 class="font-bold text-sm text-white flex items-center gap-2">
+              <i data-lucide="smartphone" class="w-4 h-4 text-amber-400"></i>
+              <span>شحن وتعبئة الرصيد (Flexy)</span>
+            </h3>
+            <button @click="activeModal = null" class="text-slate-400 hover:text-white">
+              <i data-lucide="x" class="w-5 h-5"></i>
+            </button>
+          </div>
+
+          <!-- Operator Selector -->
+          <div class="grid grid-cols-3 gap-2">
+            <button @click="topupForm.operator = 'Mobilis'" :class="topupForm.operator === 'Mobilis' ? 'border-emerald-500 bg-emerald-500/10 text-emerald-400' : 'border-slate-800 bg-slate-900 text-slate-400'" class="p-3 rounded-xl border text-center font-bold text-xs transition">
+              Mobilis
+            </button>
+            <button @click="topupForm.operator = 'Djezzy'" :class="topupForm.operator === 'Djezzy' ? 'border-red-500 bg-red-500/10 text-red-400' : 'border-slate-800 bg-slate-900 text-slate-400'" class="p-3 rounded-xl border text-center font-bold text-xs transition">
+              Djezzy
+            </button>
+            <button @click="topupForm.operator = 'Ooredoo'" :class="topupForm.operator === 'Ooredoo' ? 'border-rose-500 bg-rose-500/10 text-rose-400' : 'border-slate-800 bg-slate-900 text-slate-400'" class="p-3 rounded-xl border text-center font-bold text-xs transition">
+              Ooredoo
+            </button>
+          </div>
+
+          <div class="space-y-3">
+            <div>
+              <label class="text-[11px] font-medium text-slate-400 mb-1 block">رقم الهاتف</label>
+              <input type="tel" x-model="topupForm.phone" placeholder="0661234567" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-amber-400">
+            </div>
+
+            <div>
+              <label class="text-[11px] font-medium text-slate-400 mb-1 block">اختر قيمة التعبئة (دج)</label>
+              <div class="grid grid-cols-3 gap-2 mb-2">
+                <button @click="topupForm.amount = 500" :class="topupForm.amount === 500 ? 'bg-amber-500 text-slate-950 font-bold' : 'bg-slate-900 text-slate-300'" class="py-2 rounded-lg text-xs font-poppins transition">500 دج</button>
+                <button @click="topupForm.amount = 1000" :class="topupForm.amount === 1000 ? 'bg-amber-500 text-slate-950 font-bold' : 'bg-slate-900 text-slate-300'" class="py-2 rounded-lg text-xs font-poppins transition">1000 دج</button>
+                <button @click="topupForm.amount = 2000" :class="topupForm.amount === 2000 ? 'bg-amber-500 text-slate-950 font-bold' : 'bg-slate-900 text-slate-300'" class="py-2 rounded-lg text-xs font-poppins transition">2000 دج</button>
+              </div>
+            </div>
+
+            <button @click="executeTopup()" class="w-full py-3 bg-gradient-to-r from-amber-500 to-yellow-500 text-slate-950 font-black rounded-xl text-xs shadow-lg transition">
+              تعبئة الرصيد الآن
+            </button>
+          </div>
+        </div>
+      </div>
+    </template>
+
+    <!-- 3. Modal: Pay Bills -->
+    <template x-if="activeModal === 'bills'">
+      <div class="absolute inset-0 bg-slate-950/80 backdrop-blur-sm z-30 flex flex-col justify-end p-4">
+        <div class="bg-dz-navyCard border border-slate-800 rounded-3xl p-5 space-y-4 max-h-[90%] overflow-y-auto no-scrollbar shadow-2xl">
+          <div class="flex items-center justify-between pb-2 border-b border-slate-800">
+            <h3 class="font-bold text-sm text-white flex items-center gap-2">
+              <i data-lucide="receipt" class="w-4 h-4 text-emerald-400"></i>
+              <span>دفع الفواتير الوطنية</span>
+            </h3>
+            <button @click="activeModal = null" class="text-slate-400 hover:text-white">
+              <i data-lucide="x" class="w-5 h-5"></i>
+            </button>
+          </div>
+
+          <div class="grid grid-cols-2 gap-2 text-xs">
+            <button @click="billForm.biller = 'سونلغاز (الكهرباء والغاز)'; billForm.amount = 3450" :class="billForm.biller.includes('سونلغاز') ? 'border-amber-400 bg-amber-400/10 text-white font-bold' : 'border-slate-800 bg-slate-900 text-slate-300'" class="p-3 rounded-xl border text-right transition">
+              ⚡ سونلغاز (Sonelgaz)
+            </button>
+            <button @click="billForm.biller = 'اتصالات الجزائر (Idoom)'; billForm.amount = 2600" :class="billForm.biller.includes('اتصالات') ? 'border-blue-400 bg-blue-400/10 text-white font-bold' : 'border-slate-800 bg-slate-900 text-slate-300'" class="p-3 rounded-xl border text-right transition">
+              🌐 اتصالات الجزائر
+            </button>
+            <button @click="billForm.biller = 'سيال للمياه (SEAAL)'; billForm.amount = 1890" :class="billForm.biller.includes('سيال') ? 'border-cyan-400 bg-cyan-400/10 text-white font-bold' : 'border-slate-800 bg-slate-900 text-slate-300'" class="p-3 rounded-xl border text-right transition">
+              💧 سيال (SEAAL)
+            </button>
+            <button @click="billForm.biller = 'سكنات عدل (AADL)'; billForm.amount = 6800" :class="billForm.biller.includes('عدل') ? 'border-emerald-400 bg-emerald-400/10 text-white font-bold' : 'border-slate-800 bg-slate-900 text-slate-300'" class="p-3 rounded-xl border text-right transition">
+              🏢 سكنات عدل (AADL)
+            </button>
+          </div>
+
+          <div class="space-y-3">
+            <div>
+              <label class="text-[11px] font-medium text-slate-400 mb-1 block">رقم الفاتورة / مرجع الاشتراك</label>
+              <input type="text" x-model="billForm.ref" placeholder="DZ-INV-2026-904" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-emerald-400">
+            </div>
+            <div>
+              <label class="text-[11px] font-medium text-slate-400 mb-1 block">المبلغ المستحق (دج)</label>
+              <input type="number" x-model.number="billForm.amount" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3.5 py-2.5 text-sm font-bold font-poppins text-white focus:outline-none focus:border-emerald-400">
+            </div>
+            <button @click="executeBillPay()" class="w-full py-3 bg-gradient-to-r from-emerald-600 to-emerald-500 text-white font-bold rounded-xl text-xs shadow-lg transition">
+              تسديد الفاتورة فورياً
+            </button>
+          </div>
+        </div>
+      </div>
+    </template>
+
+    <!-- 4. Modal: Cardless ATM -->
+    <template x-if="activeModal === 'atm'">
+      <div class="absolute inset-0 bg-slate-950/80 backdrop-blur-sm z-30 flex flex-col justify-end p-4">
+        <div class="bg-dz-navyCard border border-slate-800 rounded-3xl p-5 space-y-4 max-h-[90%] overflow-y-auto no-scrollbar shadow-2xl text-center">
+          <div class="flex items-center justify-between pb-2 border-b border-slate-800">
+            <h3 class="font-bold text-sm text-white flex items-center gap-2">
+              <i data-lucide="banknote" class="w-4 h-4 text-purple-400"></i>
+              <span>سحب بدون بطاقة (الصراف الآلي)</span>
+            </h3>
+            <button @click="activeModal = null" class="text-slate-400 hover:text-white">
+              <i data-lucide="x" class="w-5 h-5"></i>
+            </button>
+          </div>
+
+          <template x-if="!atmCode">
+            <div class="space-y-4 text-right">
+              <p class="text-xs text-slate-300">قم بتوليد رمز أمان مؤقت لاستخدامه في شباك الصراف الآلي لبريد الجزائر للسحب الفوري دون إدخال البطاقة.</p>
+              <div>
+                <label class="text-[11px] font-medium text-slate-400 mb-1 block">حدد المبلغ المراد سحبه (دج)</label>
+                <select x-model="atmAmount" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3.5 py-2.5 text-xs text-white">
+                  <option value="2000">2,000 دج</option>
+                  <option value="5000">5,000 دج</option>
+                  <option value="10000">10,000 دج</option>
+                  <option value="20000">20,000 دج</option>
+                </select>
+              </div>
+              <button @click="generateAtmCode()" class="w-full py-3 bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-bold rounded-xl text-xs shadow-lg transition">
+                توليد رمز السحب المؤقت
+              </button>
+            </div>
+          </template>
+
+          <template x-if="atmCode">
+            <div class="space-y-3 py-2">
+              <div class="w-12 h-12 rounded-full bg-purple-500/10 text-purple-400 flex items-center justify-center mx-auto">
+                <i data-lucide="check-circle" class="w-6 h-6"></i>
+              </div>
+              <h4 class="font-bold text-sm text-white">رمز السحب المالي الجاهز:</h4>
+              <div class="bg-slate-900 border border-purple-500/40 rounded-2xl p-4">
+                <span class="text-3xl font-black font-mono tracking-widest text-amber-400 block" x-text="atmCode">849 201</span>
+                <span class="text-[10px] text-slate-400 mt-1 block">صالح لمدة 15 دقيقة في أي صراف آلي لبريد الجزائر</span>
+              </div>
+              <button @click="atmCode = null; activeModal = null" class="w-full py-2.5 bg-slate-800 text-slate-200 rounded-xl text-xs font-bold">
+                إغلاق
+              </button>
+            </div>
+          </template>
+        </div>
+      </div>
+    </template>
+
+    <!-- 5. Modal: Card Security -->
+    <template x-if="activeModal === 'security'">
+      <div class="absolute inset-0 bg-slate-950/80 backdrop-blur-sm z-30 flex flex-col justify-end p-4">
+        <div class="bg-dz-navyCard border border-slate-800 rounded-3xl p-5 space-y-4 max-h-[90%] overflow-y-auto no-scrollbar shadow-2xl">
+          <div class="flex items-center justify-between pb-2 border-b border-slate-800">
+            <h3 class="font-bold text-sm text-white flex items-center gap-2">
+              <i data-lucide="shield" class="w-4 h-4 text-rose-400"></i>
+              <span>إعدادات أمان البطاقة الذهبية</span>
+            </h3>
+            <button @click="activeModal = null" class="text-slate-400 hover:text-white">
+              <i data-lucide="x" class="w-5 h-5"></i>
+            </button>
+          </div>
+
+          <div class="space-y-3">
+            <div class="flex items-center justify-between p-3 rounded-2xl bg-slate-900 border border-slate-800">
+              <div>
+                <span class="text-xs font-bold text-white block">تجميد البطاقة فورياً</span>
+                <span class="text-[10px] text-slate-400">إيقاف جميع المعاملات مؤقتاً عند الطوارئ</span>
+              </div>
+              <button @click="cardFrozen = !cardFrozen; showNotifToast(cardFrozen ? 'تم تجميد البطاقة بنجاح' : 'تم فك تجميد البطاقة')" :class="cardFrozen ? 'bg-rose-500' : 'bg-slate-700'" class="w-12 h-6 rounded-full p-1 transition flex items-center" :style="cardFrozen ? 'justify-content: flex-end' : 'justify-content: flex-start'">
+                <div class="w-4 h-4 rounded-full bg-white shadow-md"></div>
+              </button>
+            </div>
+
+            <div class="flex items-center justify-between p-3 rounded-2xl bg-slate-900 border border-slate-800">
+              <div>
+                <span class="text-xs font-bold text-white block">الدفع عبر الإنترنت</span>
+                <span class="text-[10px] text-slate-400">التسوق من المواقع والمتاجر الإلكترونية</span>
+              </div>
+              <button @click="onlinePay = !onlinePay" :class="onlinePay ? 'bg-emerald-500' : 'bg-slate-700'" class="w-12 h-6 rounded-full p-1 transition flex items-center" :style="onlinePay ? 'justify-content: flex-end' : 'justify-content: flex-start'">
+                <div class="w-4 h-4 rounded-full bg-white shadow-md"></div>
+              </button>
+            </div>
+
+            <div class="flex items-center justify-between p-3 rounded-2xl bg-slate-900 border border-slate-800">
+              <div>
+                <span class="text-xs font-bold text-white block">الدفع اللاتلامسي (NFC)</span>
+                <span class="text-[10px] text-slate-400">الدفع السريع بتقريب البطاقة من جهاز TPE</span>
+              </div>
+              <button @click="contactless = !contactless" :class="contactless ? 'bg-emerald-500' : 'bg-slate-700'" class="w-12 h-6 rounded-full p-1 transition flex items-center" :style="contactless ? 'justify-content: flex-end' : 'justify-content: flex-start'">
+                <div class="w-4 h-4 rounded-full bg-white shadow-md"></div>
+              </button>
+            </div>
+
+            <button @click="activeModal = null; showNotifToast('تم حفظ إعدادات الأمان')" class="w-full py-2.5 bg-slate-800 hover:bg-slate-700 text-white font-bold rounded-xl text-xs transition">
+              حفظ الإعدادات
+            </button>
+          </div>
+        </div>
+      </div>
+    </template>
+
+    <!-- 6. Modal: Beneficiaries -->
+    <template x-if="activeModal === 'beneficiaries'">
+      <div class="absolute inset-0 bg-slate-950/80 backdrop-blur-sm z-30 flex flex-col justify-end p-4">
+        <div class="bg-dz-navyCard border border-slate-800 rounded-3xl p-5 space-y-4 max-h-[90%] overflow-y-auto no-scrollbar shadow-2xl">
+          <div class="flex items-center justify-between pb-2 border-b border-slate-800">
+            <h3 class="font-bold text-sm text-white flex items-center gap-2">
+              <i data-lucide="users" class="w-4 h-4 text-cyan-400"></i>
+              <span>المستفيدون المحفوظون</span>
+            </h3>
+            <button @click="activeModal = null" class="text-slate-400 hover:text-white">
+              <i data-lucide="x" class="w-5 h-5"></i>
+            </button>
+          </div>
+
+          <div class="space-y-2">
+            <template x-for="b in beneficiaries" :key="b.id">
+              <div class="p-3 bg-slate-900 border border-slate-800 rounded-2xl flex items-center justify-between">
+                <div>
+                  <span class="text-xs font-bold text-white block" x-text="b.name"></span>
+                  <span class="text-[10px] font-mono text-amber-300 block" x-text="b.rip"></span>
+                </div>
+                <button @click="selectBeneficiary(b)" class="px-3 py-1.5 bg-blue-600/20 text-blue-400 border border-blue-500/30 rounded-lg text-xs font-semibold">
+                  تحويل له
+                </button>
+              </div>
+            </template>
+          </div>
+        </div>
+      </div>
+    </template>
+
+    <!-- 7. Modal: Customer Support Chat -->
+    <template x-if="activeModal === 'support'">
+      <div class="absolute inset-0 bg-slate-950/80 backdrop-blur-sm z-30 flex flex-col justify-end p-4">
+        <div class="bg-dz-navyCard border border-slate-800 rounded-3xl p-5 space-y-4 max-h-[90%] overflow-y-auto no-scrollbar shadow-2xl">
+          <div class="flex items-center justify-between pb-2 border-b border-slate-800">
+            <h3 class="font-bold text-sm text-white flex items-center gap-2">
+              <i data-lucide="headset" class="w-4 h-4 text-indigo-400"></i>
+              <span>مركز المساعدة والدعم 24/7</span>
+            </h3>
+            <button @click="activeModal = null" class="text-slate-400 hover:text-white">
+              <i data-lucide="x" class="w-5 h-5"></i>
+            </button>
+          </div>
+
+          <div class="space-y-2 max-h-48 overflow-y-auto p-2 bg-slate-900 rounded-2xl text-xs space-y-2">
+            <div class="bg-dz-navyLight p-2.5 rounded-xl text-slate-200">
+              <span class="text-[10px] font-bold text-amber-400 block mb-0.5">الدعم الآلي لبريد الجزائر:</span>
+              مرحباً بك في خدمة دعم DinarPay! كيف يمكننا مساعدتك اليوم بخصوص حسابك أو بطاقتك؟
+            </div>
+            <template x-for="(msg, i) in supportMessages" :key="i">
+              <div :class="msg.fromUser ? 'bg-blue-600 text-white ml-6 text-left' : 'bg-dz-navyLight text-slate-200 mr-6 text-right'" class="p-2.5 rounded-xl">
+                <span x-text="msg.text"></span>
+              </div>
+            </template>
+          </div>
+
+          <div class="flex gap-2">
+            <input type="text" x-model="supportInput" placeholder="اكتب استفسارك هنا..." class="flex-1 bg-slate-900 border border-slate-700 rounded-xl px-3 text-xs text-white focus:outline-none focus:border-indigo-400">
+            <button @click="sendSupportMessage()" class="px-4 py-2.5 bg-indigo-600 text-white rounded-xl text-xs font-bold">
+              إرسال
+            </button>
+          </div>
+        </div>
+      </div>
+    </template>
+
+    <!-- 8. Receipt Modal -->
+    <template x-if="selectedReceipt">
+      <div class="absolute inset-0 bg-slate-950/85 backdrop-blur-md z-40 flex items-center justify-center p-4">
+        <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6 w-full max-w-sm space-y-4 shadow-2xl relative text-center">
+          <div class="w-14 h-14 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center mx-auto mb-1">
+            <i data-lucide="check-circle-2" class="w-8 h-8"></i>
+          </div>
+          <h3 class="text-base font-black text-white">إشعار بالمعاملة البريدية الناجحة</h3>
+          <p class="text-xs text-slate-400">بريد الجزائر - نظام التحويلات الفوري</p>
+
+          <div class="bg-dz-navy p-4 rounded-2xl text-xs space-y-2.5 border border-slate-800 text-right">
+            <div class="flex justify-between">
+              <span class="text-slate-400">نوع العملية:</span>
+              <span class="font-bold text-white" x-text="selectedReceipt.title"></span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-slate-400">المبلغ:</span>
+              <span class="font-black text-amber-400 font-poppins" x-text="formatMoney(selectedReceipt.amount) + ' دج'"></span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-slate-400">المستفيد:</span>
+              <span class="font-semibold text-white" x-text="selectedReceipt.recipient"></span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-slate-400">التاريخ والوقت:</span>
+              <span class="font-mono text-slate-300" x-text="selectedReceipt.date"></span>
+            </div>
+            <div class="flex justify-between pt-2 border-t border-slate-800">
+              <span class="text-slate-400">الرقم المرجعي:</span>
+              <span class="font-mono text-amber-300 text-[11px]" x-text="selectedReceipt.id"></span>
+            </div>
+          </div>
+
+          <button @click="selectedReceipt = null" class="w-full py-2.5 bg-dz-blue hover:bg-blue-600 text-white rounded-xl text-xs font-bold transition">
+            إغلاق الإشعار
+          </button>
+        </div>
+      </div>
+    </template>
+
+    <!-- Floating Toast Notification -->
+    <template x-if="toastMessage">
+      <div class="absolute top-14 left-4 right-4 bg-dz-navyLight border border-amber-500/40 text-amber-300 text-xs font-semibold px-4 py-2.5 rounded-xl shadow-xl z-50 text-center animate-bounce">
+        <span x-text="toastMessage"></span>
+      </div>
+    </template>
+
+  </main>
+
+  <!-- Client Purchase & Freelance Call To Action Banner -->
+  <footer class="w-full max-w-4xl mt-4 hidden md:flex items-center justify-between bg-slate-900/90 border border-slate-800 rounded-2xl px-6 py-4 shadow-xl">
+    <div>
+      <span class="text-xs font-bold text-white block">هل أنت راضٍ عن المعاينة وتود استلام نسخة الأندرويد الأصلية (APK)؟</span>
+      <span class="text-xs text-slate-400">بمجرد تسوية الدفع، سيزودك المطور بملف `DinarPay_App_v1.0.apk` والكود المصدري كاملاً.</span>
+    </div>
+    <div class="flex items-center gap-2">
+      <span class="px-3.5 py-1.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-black">
+        الحالة: جاهز للتسليم الفوري
+      </span>
+    </div>
+  </footer>
+
+  <script>
+    function dinarPayApp() {
+      return {
+        currentScreen: 'dashboard', // 'auth' or 'dashboard'
+        authTab: 'quick',
+        loginInput: '',
+        pinInput: '',
+        userName: 'أحمد محمد بن علي',
+        ripNumber: '00799999004125898421',
+        balance: 185450.00,
+        showBalance: true,
+        currentTime: '12:30',
+        activeModal: null, // 'transfer', 'topup', 'bills', 'atm', 'security', 'beneficiaries', 'support'
+        toastMessage: null,
+        selectedReceipt: null,
+
+        // Card Settings
+        cardFrozen: false,
+        onlinePay: true,
+        contactless: true,
+
+        // Forms
+        transferForm: { rip: '', name: '', amount: null },
+        topupForm: { operator: 'Mobilis', phone: '', amount: 1000 },
+        billForm: { biller: 'سونلغاز (الكهرباء والغاز)', ref: '', amount: 3450 },
+        atmAmount: '5000',
+        atmCode: null,
+        supportInput: '',
+        supportMessages: [],
+
+        beneficiaries: [
+          { id: 1, name: 'فاطمة الزهراء', rip: '00799999002341908122' },
+          { id: 2, name: 'كريم مرواني', rip: '00799999008912347101' },
+          { id: 3, name: 'يوسف شريف', rip: '00799999006543219084' }
+        ],
+
+        transactions: [
+          { id: 'TX-DZ-98124', title: 'تحويل مالي وارد (P2P)', recipient: 'فاطمة الزهراء', amount: 15000, isIncome: true, date: 'اليوم، 10:45 ص' },
+          { id: 'TX-DZ-97451', title: 'تعبئة رصيد Mobilis', recipient: '0661234567', amount: 1000, isIncome: false, date: 'أمس، 06:20 م' },
+          { id: 'TX-DZ-96312', title: 'تسديد فاتورة سونلغاز', recipient: 'شركة سونلغاز', amount: 3450, isIncome: false, date: '08 نوفمبر 2026' },
+          { id: 'TX-DZ-95109', title: 'سحب نقدي من الصراف', recipient: 'شباك بريد الجزائر', amount: 10000, isIncome: false, date: '05 نوفمبر 2026' }
+        ],
+
+        initApp() {
+          this.updateClock();
+          setInterval(() => this.updateClock(), 30000);
+          this.$nextTick(() => { lucide.createIcons(); });
+        },
+
+        updateClock() {
+          const now = new Date();
+          const hours = String(now.getHours()).padStart(2, '0');
+          const minutes = String(now.getMinutes()).padStart(2, '0');
+          this.currentTime = `${hours}:${minutes}`;
+        },
+
+        formatMoney(num) {
+          if (!num && num !== 0) return '0.00';
+          return Number(num).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        },
+
+        showNotifToast(msg) {
+          this.toastMessage = msg;
+          setTimeout(() => { this.toastMessage = null; }, 3500);
+        },
+
+        openModal(name) {
+          this.activeModal = name;
+          this.$nextTick(() => { lucide.createIcons(); });
+        },
+
+        handleLogin() {
+          if (!this.loginInput.trim()) {
+            this.showNotifToast('يرجى إدخال البريد الإلكتروني أو الهاتف');
+            return;
+          }
+          this.currentScreen = 'dashboard';
+          this.showNotifToast('تم تسجيل الدخول بنجاح');
+          this.$nextTick(() => { lucide.createIcons(); });
+        },
+
+        quickDemoLogin() {
+          this.currentScreen = 'dashboard';
+          this.showNotifToast('مرحباً بك في المعاينة التجريبية لـ DinarPay');
+          this.$nextTick(() => { lucide.createIcons(); });
+        },
+
+        simulateBiometric() {
+          this.showNotifToast('جاري التحقق من البصمة الحيوية...');
+          setTimeout(() => {
+            this.currentScreen = 'dashboard';
+            this.showNotifToast('تمت مطابقة البصمة بنجاح ✓');
+            this.$nextTick(() => { lucide.createIcons(); });
+          }, 800);
+        },
+
+        copyRip() {
+          navigator.clipboard?.writeText(this.ripNumber);
+          this.showNotifToast('تم نسخ رقم الـ RIP بنجاح');
+        },
+
+        executeTransfer() {
+          if (!this.transferForm.rip || this.transferForm.rip.length < 10) {
+            this.showNotifToast('يرجى إدخال رقم RIP صحيح');
+            return;
+          }
+          if (!this.transferForm.amount || this.transferForm.amount <= 0) {
+            this.showNotifToast('يرجى إدخال مبلغ صحيح');
+            return;
+          }
+          if (this.transferForm.amount > this.balance) {
+            this.showNotifToast('عذراً، الرصيد المتاح غير كافٍ');
+            return;
+          }
+
+          this.balance -= this.transferForm.amount;
+          const newTx = {
+            id: 'TX-DZ-' + Math.floor(100000 + Math.random() * 900000),
+            title: 'تحويل مالي فوري (بريدي موب)',
+            recipient: this.transferForm.name || 'مستفيد عبر RIP',
+            amount: this.transferForm.amount,
+            isIncome: false,
+            date: 'الآن'
+          };
+          this.transactions.unshift(newTx);
+          this.activeModal = null;
+          this.selectedReceipt = newTx;
+          this.transferForm = { rip: '', name: '', amount: null };
+          this.$nextTick(() => { lucide.createIcons(); });
+        },
+
+        executeTopup() {
+          if (!this.topupForm.phone || this.topupForm.phone.length < 9) {
+            this.showNotifToast('يرجى إدخال رقم هاتف صحيح');
+            return;
+          }
+          if (this.topupForm.amount > this.balance) {
+            this.showNotifToast('عذراً، الرصيد غير كافٍ');
+            return;
+          }
+
+          this.balance -= this.topupForm.amount;
+          const newTx = {
+            id: 'TX-DZ-' + Math.floor(100000 + Math.random() * 900000),
+            title: 'تعبئة رصيد ' + this.topupForm.operator,
+            recipient: this.topupForm.phone,
+            amount: this.topupForm.amount,
+            isIncome: false,
+            date: 'الآن'
+          };
+          this.transactions.unshift(newTx);
+          this.activeModal = null;
+          this.selectedReceipt = newTx;
+          this.$nextTick(() => { lucide.createIcons(); });
+        },
+
+        executeBillPay() {
+          if (this.billForm.amount > this.balance) {
+            this.showNotifToast('عذراً، الرصيد غير كافٍ لتسديد الفاتورة');
+            return;
+          }
+
+          this.balance -= this.billForm.amount;
+          const newTx = {
+            id: 'TX-DZ-' + Math.floor(100000 + Math.random() * 900000),
+            title: 'تسديد فاتورة ' + this.billForm.biller,
+            recipient: this.billForm.biller,
+            amount: this.billForm.amount,
+            isIncome: false,
+            date: 'الآن'
+          };
+          this.transactions.unshift(newTx);
+          this.activeModal = null;
+          this.selectedReceipt = newTx;
+          this.$nextTick(() => { lucide.createIcons(); });
+        },
+
+        generateAtmCode() {
+          this.atmCode = Math.floor(100 + Math.random() * 900) + ' ' + Math.floor(100 + Math.random() * 900);
+          this.$nextTick(() => { lucide.createIcons(); });
+        },
+
+        selectBeneficiary(b) {
+          this.transferForm.rip = b.rip;
+          this.transferForm.name = b.name;
+          this.activeModal = 'transfer';
+          this.$nextTick(() => { lucide.createIcons(); });
+        },
+
+        sendSupportMessage() {
+          if (!this.supportInput.trim()) return;
+          this.supportMessages.push({ text: this.supportInput, fromUser: true });
+          const userQuery = this.supportInput;
+          this.supportInput = '';
+          setTimeout(() => {
+            let reply = 'شكراً لتواصلك مع الدعم الفني لـ DinarPay. تم تسجيل طلبك بخصوص حسابك البريدي وسيقوم عون الخدمة بمتابعته فورياً.';
+            this.supportMessages.push({ text: reply, fromUser: false });
+          }, 800);
+        },
+
+        viewReceipt(tx) {
+          this.selectedReceipt = tx;
+          this.$nextTick(() => { lucide.createIcons(); });
+        },
+
+        resetDemoData() {
+          this.balance = 185450.00;
+          this.cardFrozen = false;
+          this.showNotifToast('تمت استعادة البيانات والرصيد التجريبي الأصلي');
+        }
+      }
+    }
+  </script>
+</body>
+</html>

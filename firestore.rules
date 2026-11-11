@@ -1,0 +1,301 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() >= 1 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isValidWalletAccountForUser(data, userId) {
+      return data.keys().hasAll([
+               'userId', 'fullName', 'phoneNumber', 'ccpAccount', 'ripNumber',
+               'cardMaskedNumber', 'cardExpiry', 'balanceDzd', 'cardFrozen',
+               'onlinePaymentsEnabled', 'contactlessEnabled', 'biometricEnabled',
+               'twoFactorEnabled', 'dailyTransferLimitDzd', 'dailyWithdrawalLimitDzd',
+               'createdAt', 'updatedAt'
+             ]) &&
+             data.keys().hasOnly([
+               'userId', 'fullName', 'phoneNumber', 'ccpAccount', 'ripNumber',
+               'cardMaskedNumber', 'cardExpiry', 'balanceDzd', 'cardFrozen',
+               'onlinePaymentsEnabled', 'contactlessEnabled', 'biometricEnabled',
+               'twoFactorEnabled', 'dailyTransferLimitDzd', 'dailyWithdrawalLimitDzd',
+               'createdAt', 'updatedAt'
+             ]) &&
+             data.userId is string && data.userId == userId &&
+             data.fullName is string && data.fullName.size() >= 2 && data.fullName.size() <= 80 &&
+             data.phoneNumber is string && data.phoneNumber.size() >= 8 && data.phoneNumber.size() <= 20 &&
+             data.ccpAccount is string && data.ccpAccount.size() >= 6 && data.ccpAccount.size() <= 30 &&
+             data.ripNumber is string && data.ripNumber.size() == 20 &&
+             data.cardMaskedNumber is string && data.cardMaskedNumber.size() >= 8 && data.cardMaskedNumber.size() <= 25 &&
+             data.cardExpiry is string && data.cardExpiry.size() == 5 &&
+             data.balanceDzd is int && data.balanceDzd >= 0 && data.balanceDzd <= 1000000000 &&
+             data.cardFrozen is bool &&
+             data.onlinePaymentsEnabled is bool &&
+             data.contactlessEnabled is bool &&
+             data.biometricEnabled is bool &&
+             data.twoFactorEnabled is bool &&
+             data.dailyTransferLimitDzd is int && data.dailyTransferLimitDzd >= 1000 && data.dailyTransferLimitDzd <= 5000000 &&
+             data.dailyWithdrawalLimitDzd is int && data.dailyWithdrawalLimitDzd >= 1000 && data.dailyWithdrawalLimitDzd <= 1000000 &&
+             data.createdAt is timestamp && data.createdAt <= request.time &&
+             data.updatedAt is timestamp && data.updatedAt <= request.time;
+    }
+
+    function isValidWalletAccount(data, userId) {
+      return isValidWalletAccountForUser(data, userId) && data.userId == request.auth.uid;
+    }
+
+    function isValidWalletTransactionForUser(data, userId) {
+      return data.keys().hasAll([
+               'userId', 'type', 'title', 'recipientName', 'recipientRip',
+               'operatorOrBiller', 'referenceCode', 'amountDzd', 'feeDzd',
+               'status', 'note', 'createdAt', 'updatedAt'
+             ]) &&
+             data.keys().hasOnly([
+               'userId', 'type', 'title', 'recipientName', 'recipientRip',
+               'operatorOrBiller', 'referenceCode', 'amountDzd', 'feeDzd',
+               'status', 'note', 'createdAt', 'updatedAt'
+             ]) &&
+             data.userId is string && data.userId == userId &&
+             data.type is string && data.type in ['transfer', 'topup', 'bill', 'cardless_atm', 'qr_pay', 'deposit'] &&
+             data.title is string && data.title.size() >= 2 && data.title.size() <= 100 &&
+             data.recipientName is string && data.recipientName.size() >= 1 && data.recipientName.size() <= 100 &&
+             data.recipientRip is string && data.recipientRip.size() >= 1 && data.recipientRip.size() <= 40 &&
+             data.operatorOrBiller is string && data.operatorOrBiller.size() >= 1 && data.operatorOrBiller.size() <= 60 &&
+             data.referenceCode is string && data.referenceCode.size() >= 3 && data.referenceCode.size() <= 40 &&
+             data.amountDzd is int && data.amountDzd > 0 && data.amountDzd <= 100000000 &&
+             data.feeDzd is int && data.feeDzd >= 0 && data.feeDzd <= 100000 &&
+             data.status is string && data.status in ['completed', 'pending', 'cancelled'] &&
+             data.note is string && data.note.size() <= 240 &&
+             data.createdAt is timestamp && data.createdAt <= request.time &&
+             data.updatedAt is timestamp && data.updatedAt <= request.time;
+    }
+
+    function isValidWalletTransaction(data, userId) {
+      return isValidWalletTransactionForUser(data, userId) && data.userId == request.auth.uid;
+    }
+
+    function isValidBeneficiary(data, userId) {
+      return data.keys().hasAll([
+               'userId', 'fullName', 'ripNumber', 'nickname', 'isFavorite',
+               'createdAt', 'updatedAt'
+             ]) &&
+             data.keys().hasOnly([
+               'userId', 'fullName', 'ripNumber', 'nickname', 'isFavorite',
+               'createdAt', 'updatedAt'
+             ]) &&
+             data.userId is string && data.userId == userId && data.userId == request.auth.uid &&
+             data.fullName is string && data.fullName.size() >= 2 && data.fullName.size() <= 80 &&
+             data.ripNumber is string && data.ripNumber.size() == 20 &&
+             data.nickname is string && data.nickname.size() <= 50 &&
+             data.isFavorite is bool &&
+             data.createdAt is timestamp && data.createdAt <= request.time &&
+             data.updatedAt is timestamp && data.updatedAt <= request.time;
+    }
+
+    function isValidSupportTicket(data, userId) {
+      return data.keys().hasAll([
+               'userId', 'subject', 'category', 'priority', 'status',
+               'userMessage', 'supportReply', 'createdAt', 'updatedAt'
+             ]) &&
+             data.keys().hasOnly([
+               'userId', 'subject', 'category', 'priority', 'status',
+               'userMessage', 'supportReply', 'createdAt', 'updatedAt'
+             ]) &&
+             data.userId is string && data.userId == userId && data.userId == request.auth.uid &&
+             data.subject is string && data.subject.size() >= 3 && data.subject.size() <= 120 &&
+             data.category is string && data.category in ['transfer_issue', 'card_security', 'atm_withdrawal', 'bill_payment', 'account_verification'] &&
+             data.priority is string && data.priority in ['normal', 'high', 'urgent'] &&
+             data.status is string && data.status in ['open', 'answered', 'resolved'] &&
+             data.userMessage is string && data.userMessage.size() >= 3 && data.userMessage.size() <= 1000 &&
+             data.supportReply is string && data.supportReply.size() <= 1500 &&
+             data.createdAt is timestamp && data.createdAt <= request.time &&
+             data.updatedAt is timestamp && data.updatedAt <= request.time;
+    }
+
+    function isValidPublicDirectoryPeer(data, userId) {
+      return data.keys().hasAll(['userId', 'fullName', 'phoneNumber', 'ripNumber', 'updatedAt']) &&
+             data.keys().hasOnly(['userId', 'fullName', 'phoneNumber', 'ripNumber', 'updatedAt']) &&
+             data.userId is string && data.userId == userId && data.userId == request.auth.uid &&
+             data.fullName is string && data.fullName.size() >= 2 && data.fullName.size() <= 80 &&
+             data.phoneNumber is string && data.phoneNumber.size() >= 8 && data.phoneNumber.size() <= 20 &&
+             data.ripNumber is string && data.ripNumber.size() == 20 &&
+             data.updatedAt is timestamp && data.updatedAt <= request.time;
+    }
+
+    function isValidP2PTransfer(data) {
+      return data.keys().hasAll([
+               'senderUid', 'senderName', 'senderRip', 'recipientUid',
+               'recipientName', 'recipientRip', 'amountDzd', 'referenceCode',
+               'note', 'status', 'createdAt', 'updatedAt'
+             ]) &&
+             data.keys().hasOnly([
+               'senderUid', 'senderName', 'senderRip', 'recipientUid',
+               'recipientName', 'recipientRip', 'amountDzd', 'referenceCode',
+               'note', 'status', 'createdAt', 'updatedAt'
+             ]) &&
+             data.senderUid is string && data.senderUid.size() >= 1 && data.senderUid.size() <= 128 &&
+             data.senderName is string && data.senderName.size() >= 2 && data.senderName.size() <= 80 &&
+             data.senderRip is string && data.senderRip.size() == 20 &&
+             data.recipientUid is string && data.recipientUid.size() <= 128 &&
+             data.recipientName is string && data.recipientName.size() >= 1 && data.recipientName.size() <= 80 &&
+             data.recipientRip is string && data.recipientRip.size() == 20 &&
+             data.amountDzd is int && data.amountDzd >= 100 && data.amountDzd <= 100000000 &&
+             data.referenceCode is string && data.referenceCode.size() >= 3 && data.referenceCode.size() <= 40 &&
+             data.note is string && data.note.size() <= 240 &&
+             data.status is string && data.status in ['pending_claim', 'claimed', 'credited'] &&
+             data.createdAt is timestamp && data.createdAt <= request.time &&
+             data.updatedAt is timestamp && data.updatedAt <= request.time;
+    }
+
+    match /public_directory/{userId} {
+      allow get, list: if isSignedIn();
+      allow create, update: if isOwner(userId) &&
+                               isValidId(userId) &&
+                               isValidPublicDirectoryPeer(incoming(), userId);
+      allow delete: if isOwner(userId) && isValidId(userId);
+    }
+
+    match /p2p_transfers/{transferId} {
+      allow get, list: if isSignedIn();
+      allow create: if isSignedIn() &&
+                       isValidId(transferId) &&
+                       isValidP2PTransfer(incoming()) &&
+                       incoming().senderUid == request.auth.uid;
+      allow update: if isSignedIn() &&
+                       isValidId(transferId) &&
+                       isValidP2PTransfer(incoming()) &&
+                       existing().status in ['pending_claim', 'credited'] &&
+                       incoming().status in ['claimed', 'credited'] &&
+                       incoming().senderUid == existing().senderUid &&
+                       incoming().amountDzd == existing().amountDzd &&
+                       incoming().recipientRip == existing().recipientRip &&
+                       incoming().createdAt == existing().createdAt &&
+                       incoming().diff(existing()).affectedKeys().hasOnly(['status', 'recipientUid', 'updatedAt']);
+      allow delete: if false;
+    }
+
+    match /users/{userId} {
+      allow get, list: if isSignedIn();
+
+      allow create: if isOwner(userId) &&
+                       isValidId(userId) &&
+                       isValidWalletAccount(incoming(), userId);
+
+      allow update: if isValidId(userId) && (
+                       (isOwner(userId) &&
+                        isValidWalletAccount(incoming(), userId) &&
+                        incoming().userId == existing().userId &&
+                        incoming().ripNumber == existing().ripNumber &&
+                        incoming().ccpAccount == existing().ccpAccount &&
+                        incoming().createdAt == existing().createdAt &&
+                        incoming().diff(existing()).affectedKeys().hasOnly([
+                          'fullName', 'phoneNumber', 'balanceDzd', 'cardFrozen',
+                          'onlinePaymentsEnabled', 'contactlessEnabled', 'biometricEnabled',
+                          'twoFactorEnabled', 'dailyTransferLimitDzd', 'dailyWithdrawalLimitDzd',
+                          'updatedAt'
+                        ])) ||
+                       (isSignedIn() &&
+                        isValidWalletAccountForUser(incoming(), userId) &&
+                        incoming().userId == existing().userId &&
+                        incoming().ripNumber == existing().ripNumber &&
+                        incoming().ccpAccount == existing().ccpAccount &&
+                        incoming().createdAt == existing().createdAt &&
+                        incoming().balanceDzd > existing().balanceDzd &&
+                        incoming().diff(existing()).affectedKeys().hasOnly(['balanceDzd', 'updatedAt']))
+                    );
+
+      allow delete: if isOwner(userId) && isValidId(userId);
+
+      match /transactions/{txId} {
+        allow get: if isOwner(userId) && isValidId(userId) && isValidId(txId);
+        allow list: if isOwner(userId) && isValidId(userId);
+
+        allow create: if isValidId(userId) && isValidId(txId) && (
+                         (isOwner(userId) && isValidWalletTransaction(incoming(), userId)) ||
+                         (isSignedIn() &&
+                          isValidWalletTransactionForUser(incoming(), userId) &&
+                          incoming().type == 'deposit' &&
+                          incoming().status == 'completed')
+                      );
+
+        allow update: if isOwner(userId) &&
+                         isValidId(userId) &&
+                         isValidId(txId) &&
+                         isValidWalletTransaction(incoming(), userId) &&
+                         existing().status == 'pending' &&
+                         incoming().userId == existing().userId &&
+                         incoming().amountDzd == existing().amountDzd &&
+                         incoming().type == existing().type &&
+                         incoming().createdAt == existing().createdAt &&
+                         incoming().diff(existing()).affectedKeys().hasOnly(['status', 'note', 'updatedAt']);
+
+        allow delete: if false;
+      }
+
+      match /beneficiaries/{beneficiaryId} {
+        allow get: if isOwner(userId) && isValidId(userId) && isValidId(beneficiaryId);
+        allow list: if isOwner(userId) && isValidId(userId);
+
+        allow create: if isOwner(userId) &&
+                         isValidId(userId) &&
+                         isValidId(beneficiaryId) &&
+                         isValidBeneficiary(incoming(), userId);
+
+        allow update: if isOwner(userId) &&
+                         isValidId(userId) &&
+                         isValidId(beneficiaryId) &&
+                         isValidBeneficiary(incoming(), userId) &&
+                         incoming().userId == existing().userId &&
+                         incoming().createdAt == existing().createdAt &&
+                         incoming().diff(existing()).affectedKeys().hasOnly([
+                           'fullName', 'ripNumber', 'nickname', 'isFavorite', 'updatedAt'
+                         ]);
+
+        allow delete: if isOwner(userId) && isValidId(userId) && isValidId(beneficiaryId);
+      }
+
+      match /support_tickets/{ticketId} {
+        allow get: if isOwner(userId) && isValidId(userId) && isValidId(ticketId);
+        allow list: if isOwner(userId) && isValidId(userId);
+
+        allow create: if isOwner(userId) &&
+                         isValidId(userId) &&
+                         isValidId(ticketId) &&
+                         isValidSupportTicket(incoming(), userId);
+
+        allow update: if isOwner(userId) &&
+                         isValidId(userId) &&
+                         isValidId(ticketId) &&
+                         isValidSupportTicket(incoming(), userId) &&
+                         existing().status != 'resolved' &&
+                         incoming().userId == existing().userId &&
+                         incoming().category == existing().category &&
+                         incoming().createdAt == existing().createdAt &&
+                         incoming().diff(existing()).affectedKeys().hasOnly([
+                           'status', 'userMessage', 'supportReply', 'priority', 'updatedAt'
+                         ]);
+
+        allow delete: if isOwner(userId) && isValidId(userId) && isValidId(ticketId);
+      }
+    }
+  }
+}

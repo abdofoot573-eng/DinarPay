@@ -1,0 +1,428 @@
+{
+  "entities": {
+    "WalletAccount": {
+      "title": "WalletAccount",
+      "description": "User digital banking and CCP/RIP wallet account with Gold card controls and security settings.",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "Owner Firebase Auth UID."
+        },
+        "fullName": {
+          "type": "string",
+          "description": "Account holder full name."
+        },
+        "phoneNumber": {
+          "type": "string",
+          "description": "Linked phone number."
+        },
+        "ccpAccount": {
+          "type": "string",
+          "description": "CCP account number with key."
+        },
+        "ripNumber": {
+          "type": "string",
+          "description": "20-digit RIP account identifier."
+        },
+        "cardMaskedNumber": {
+          "type": "string",
+          "description": "Masked 16-digit Gold card number."
+        },
+        "cardExpiry": {
+          "type": "string",
+          "description": "Card expiration MM/YY."
+        },
+        "balanceDzd": {
+          "type": "integer",
+          "description": "Current wallet balance in Algerian Dinars (DZD)."
+        },
+        "cardFrozen": {
+          "type": "boolean",
+          "description": "Whether the Gold card is temporarily frozen."
+        },
+        "onlinePaymentsEnabled": {
+          "type": "boolean",
+          "description": "Whether e-commerce online payments are enabled."
+        },
+        "contactlessEnabled": {
+          "type": "boolean",
+          "description": "Whether NFC contactless payments are enabled."
+        },
+        "biometricEnabled": {
+          "type": "boolean",
+          "description": "Whether biometric lock is enabled."
+        },
+        "twoFactorEnabled": {
+          "type": "boolean",
+          "description": "Whether 2FA OTP verification is enabled for transfers."
+        },
+        "dailyTransferLimitDzd": {
+          "type": "integer",
+          "description": "Daily transfer limit in DZD."
+        },
+        "dailyWithdrawalLimitDzd": {
+          "type": "integer",
+          "description": "Daily ATM withdrawal limit in DZD."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server creation timestamp via FieldValue.serverTimestamp()."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server update timestamp via FieldValue.serverTimestamp()."
+        }
+      },
+      "required": [
+        "userId",
+        "fullName",
+        "phoneNumber",
+        "ccpAccount",
+        "ripNumber",
+        "cardMaskedNumber",
+        "cardExpiry",
+        "balanceDzd",
+        "cardFrozen",
+        "onlinePaymentsEnabled",
+        "contactlessEnabled",
+        "biometricEnabled",
+        "twoFactorEnabled",
+        "dailyTransferLimitDzd",
+        "dailyWithdrawalLimitDzd",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "WalletTransaction": {
+      "title": "WalletTransaction",
+      "description": "A financial transaction record (RIP transfer, mobile top-up, bill payment, cardless ATM, or QR payment).",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "Owner Firebase Auth UID."
+        },
+        "type": {
+          "type": "string",
+          "enum": ["transfer", "topup", "bill", "cardless_atm", "qr_pay", "deposit"],
+          "description": "Transaction category."
+        },
+        "title": {
+          "type": "string",
+          "description": "Short transaction title."
+        },
+        "recipientName": {
+          "type": "string",
+          "description": "Recipient or merchant name."
+        },
+        "recipientRip": {
+          "type": "string",
+          "description": "Target RIP, phone number, or bill contract ID."
+        },
+        "operatorOrBiller": {
+          "type": "string",
+          "description": "Service provider or operator name."
+        },
+        "referenceCode": {
+          "type": "string",
+          "description": "Transaction receipt reference or ATM OTP code."
+        },
+        "amountDzd": {
+          "type": "integer",
+          "description": "Transaction amount in DZD."
+        },
+        "feeDzd": {
+          "type": "integer",
+          "description": "Transaction fee in DZD."
+        },
+        "status": {
+          "type": "string",
+          "enum": ["completed", "pending", "cancelled"],
+          "description": "Transaction execution status."
+        },
+        "note": {
+          "type": "string",
+          "description": "Optional note or description."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server creation timestamp via FieldValue.serverTimestamp()."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server update timestamp via FieldValue.serverTimestamp()."
+        }
+      },
+      "required": [
+        "userId",
+        "type",
+        "title",
+        "recipientName",
+        "recipientRip",
+        "operatorOrBiller",
+        "referenceCode",
+        "amountDzd",
+        "feeDzd",
+        "status",
+        "note",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "Beneficiary": {
+      "title": "Beneficiary",
+      "description": "Saved beneficiary for quick RIP/CCP bank transfers.",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "Owner Firebase Auth UID."
+        },
+        "fullName": {
+          "type": "string",
+          "description": "Beneficiary full name."
+        },
+        "ripNumber": {
+          "type": "string",
+          "description": "20-digit RIP account number."
+        },
+        "nickname": {
+          "type": "string",
+          "description": "Short alias or relationship label."
+        },
+        "isFavorite": {
+          "type": "boolean",
+          "description": "Whether beneficiary is pinned as favorite."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server creation timestamp via FieldValue.serverTimestamp()."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server update timestamp via FieldValue.serverTimestamp()."
+        }
+      },
+      "required": [
+        "userId",
+        "fullName",
+        "ripNumber",
+        "nickname",
+        "isFavorite",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "SupportTicket": {
+      "title": "SupportTicket",
+      "description": "24/7 customer support ticket and live response log.",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "Owner Firebase Auth UID."
+        },
+        "subject": {
+          "type": "string",
+          "description": "Support ticket subject."
+        },
+        "category": {
+          "type": "string",
+          "enum": ["transfer_issue", "card_security", "atm_withdrawal", "bill_payment", "account_verification"],
+          "description": "Support category."
+        },
+        "priority": {
+          "type": "string",
+          "enum": ["normal", "high", "urgent"],
+          "description": "Ticket priority level."
+        },
+        "status": {
+          "type": "string",
+          "enum": ["open", "answered", "resolved"],
+          "description": "Ticket lifecycle status."
+        },
+        "userMessage": {
+          "type": "string",
+          "description": "User inquiry or latest message."
+        },
+        "supportReply": {
+          "type": "string",
+          "description": "24/7 support desk response."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server creation timestamp via FieldValue.serverTimestamp()."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server update timestamp via FieldValue.serverTimestamp()."
+        }
+      },
+      "required": [
+        "userId",
+        "subject",
+        "category",
+        "priority",
+        "status",
+        "userMessage",
+        "supportReply",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "PublicDirectoryPeer": {
+      "title": "PublicDirectoryPeer",
+      "description": "Public directory entry allowing authenticated users to discover and send money to peers inside the app.",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "Owner Firebase Auth UID."
+        },
+        "fullName": {
+          "type": "string",
+          "description": "Peer display name."
+        },
+        "phoneNumber": {
+          "type": "string",
+          "description": "Peer phone number."
+        },
+        "ripNumber": {
+          "type": "string",
+          "description": "Peer 20-digit RIP."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server update timestamp via FieldValue.serverTimestamp()."
+        }
+      },
+      "required": [
+        "userId",
+        "fullName",
+        "phoneNumber",
+        "ripNumber",
+        "updatedAt"
+      ]
+    },
+    "P2PTransfer": {
+      "title": "P2PTransfer",
+      "description": "Peer-to-peer money transfer record between users inside the application.",
+      "type": "object",
+      "properties": {
+        "senderUid": {
+          "type": "string",
+          "description": "Sender Firebase Auth UID."
+        },
+        "senderName": {
+          "type": "string",
+          "description": "Sender display name."
+        },
+        "senderRip": {
+          "type": "string",
+          "description": "Sender 20-digit RIP."
+        },
+        "recipientUid": {
+          "type": "string",
+          "description": "Recipient Firebase Auth UID."
+        },
+        "recipientName": {
+          "type": "string",
+          "description": "Recipient display name."
+        },
+        "recipientRip": {
+          "type": "string",
+          "description": "Recipient 20-digit RIP."
+        },
+        "amountDzd": {
+          "type": "integer",
+          "description": "Transferred amount in DZD."
+        },
+        "referenceCode": {
+          "type": "string",
+          "description": "Unique transfer reference code."
+        },
+        "note": {
+          "type": "string",
+          "description": "Transfer note."
+        },
+        "status": {
+          "type": "string",
+          "enum": ["pending_claim", "claimed"],
+          "description": "Whether the recipient has claimed the transfer into their balance."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server creation timestamp."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server update timestamp."
+        }
+      },
+      "required": [
+        "senderUid",
+        "senderName",
+        "senderRip",
+        "recipientUid",
+        "recipientName",
+        "recipientRip",
+        "amountDzd",
+        "referenceCode",
+        "note",
+        "status",
+        "createdAt",
+        "updatedAt"
+      ]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": {
+        "$ref": "#/entities/WalletAccount"
+      },
+      "description": "User wallet account document isolated per authenticated UID."
+    },
+    "/users/{userId}/transactions/{txId}": {
+      "schema": {
+        "$ref": "#/entities/WalletTransaction"
+      },
+      "description": "User financial transactions subcollection."
+    },
+    "/users/{userId}/beneficiaries/{beneficiaryId}": {
+      "schema": {
+        "$ref": "#/entities/Beneficiary"
+      },
+      "description": "Saved RIP transfer beneficiaries subcollection."
+    },
+    "/users/{userId}/support_tickets/{ticketId}": {
+      "schema": {
+        "$ref": "#/entities/SupportTicket"
+      },
+      "description": "User 24/7 technical support tickets subcollection."
+    },
+    "/public_directory/{userId}": {
+      "schema": {
+        "$ref": "#/entities/PublicDirectoryPeer"
+      },
+      "description": "Public directory of registered PayDz users for P2P money transfers."
+    },
+    "/p2p_transfers/{transferId}": {
+      "schema": {
+        "$ref": "#/entities/P2PTransfer"
+      },
+      "description": "Real-time P2P transfers sent between PayDz users."
+    }
+  }
+}
