@@ -94,9 +94,40 @@
     </div>
   </template>
 
+  <!-- Top Mode Switcher Bar (Interactive App vs Original SVG Design) -->
+  <div class="fixed top-3 z-50 flex items-center gap-2 bg-slate-900/95 border border-slate-700/80 rounded-full px-3 py-1.5 shadow-2xl backdrop-blur-md text-xs font-bold" x-show="!isAppDisabled">
+    <button @click="viewMode = 'app'" :class="viewMode === 'app' ? 'bg-dz-bluePrimary text-white shadow-md' : 'text-slate-400 hover:text-white'" class="px-4 py-1.5 rounded-full transition flex items-center gap-1.5">
+      <i data-lucide="smartphone" class="w-3.5 h-3.5"></i>
+      <span>التطبيق التفاعلي (Live App)</span>
+    </button>
+    <button @click="viewMode = 'svg'" :class="viewMode === 'svg' ? 'bg-amber-500 text-slate-950 shadow-md font-black' : 'text-slate-400 hover:text-white'" class="px-4 py-1.5 rounded-full transition flex items-center gap-1.5">
+      <i data-lucide="sparkles" class="w-3.5 h-3.5"></i>
+      <span>عرض تصميم الـ SVG الأصلي</span>
+    </button>
+  </div>
+
+  <!-- ================= ORIGINAL SVG DESIGN VIEW ================= -->
+  <div class="w-full max-w-4xl h-[92vh] bg-slate-900/95 border border-slate-800 rounded-3xl overflow-hidden p-4 flex flex-col items-center justify-start shadow-2xl relative my-auto pt-14" x-show="viewMode === 'svg' && !isAppDisabled">
+    <div class="w-full flex items-center justify-between pb-3 border-b border-slate-800 text-xs text-slate-300">
+      <span class="font-bold flex items-center gap-2 text-white">
+        <i data-lucide="palette" class="w-4 h-4 text-amber-400"></i>
+        <span>تصميم الـ SVG الأصلي الكامل بالدقة العالية المتجهة (Vector Fidelity)</span>
+      </span>
+      <div class="flex items-center gap-2">
+        <a href="design.svg" target="_blank" download="DinarPay_Canva_Design.svg" class="px-3.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-amber-300 border border-amber-500/30 flex items-center gap-1.5 transition font-bold">
+          <i data-lucide="download" class="w-3.5 h-3.5"></i>
+          <span>تحميل ملف الـ SVG</span>
+        </a>
+      </div>
+    </div>
+    <div class="w-full flex-1 overflow-auto flex items-center justify-center p-3 no-scrollbar">
+      <img src="design.svg" alt="DinarPay Original Design SVG" class="max-w-full max-h-full rounded-2xl shadow-2xl border border-slate-800 object-contain">
+    </div>
+  </div>
+
   <!-- ================= MAIN WEB APP CONTAINER ================= -->
   <!-- It scales naturally: Fullscreen on mobile devices, beautiful iPhone/Pixel shell on desktop -->
-  <div class="w-full max-w-[440px] h-[100dvh] md:h-[890px] bg-dz-bgSoft md:rounded-[42px] overflow-hidden flex flex-col relative shadow-2xl md:border-[10px] md:border-slate-800" x-show="!isAppDisabled">
+  <div class="w-full max-w-[440px] h-[100dvh] md:h-[890px] bg-dz-bgSoft md:rounded-[42px] overflow-hidden flex flex-col relative shadow-2xl md:border-[10px] md:border-slate-800 mt-12 md:mt-0" x-show="viewMode === 'app' && !isAppDisabled">
 
     <!-- Android Status Bar Header -->
     <div class="h-10 bg-[#00225E] text-white flex items-center justify-between px-6 pt-1 shrink-0 z-30 select-none">
@@ -743,6 +774,7 @@
   <script>
     function dinarPayApp() {
       return {
+        viewMode: 'app', // 'app' or 'svg'
         isAppDisabled: false, // KILLSWITCH: Set to true to immediately deactivate for client!
         currentTab: 'home', // 'home', 'services', 'card', 'history', 'profile'
         userName: 'أحمد محمد بن علي',
